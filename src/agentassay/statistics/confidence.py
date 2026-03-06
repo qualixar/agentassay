@@ -45,17 +45,15 @@ References:
 from __future__ import annotations
 
 import math
+from typing import Final
 
 try:
-    from enum import StrEnum
+    from enum import StrEnum  # type: ignore[attr-defined]
 except ImportError:
     from enum import Enum
 
-    class StrEnum(str, Enum):  # Python 3.10 compat
+    class StrEnum(str, Enum):  # type: ignore[no-redef]  # Python 3.10 compat
         pass
-
-
-from typing import Final
 
 from pydantic import BaseModel, model_validator
 from scipy import stats as sp_stats
@@ -290,10 +288,10 @@ class ConfidenceMethod(StrEnum):
 # Minimum sample sizes for each method to produce reliable intervals.
 # Below these, intervals may have poor coverage properties.
 _MIN_SAMPLE_SIZES: Final[dict[ConfidenceMethod, int]] = {
-    ConfidenceMethod.WILSON: 5,
-    ConfidenceMethod.CLOPPER_PEARSON: 1,
-    ConfidenceMethod.AGRESTI_COULL: 10,
-    ConfidenceMethod.WALD: 30,
+    ConfidenceMethod.WILSON: 5,  # type: ignore[dict-item]
+    ConfidenceMethod.CLOPPER_PEARSON: 1,  # type: ignore[dict-item]
+    ConfidenceMethod.AGRESTI_COULL: 10,  # type: ignore[dict-item]
+    ConfidenceMethod.WALD: 30,  # type: ignore[dict-item]
 }
 
 

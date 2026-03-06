@@ -420,7 +420,7 @@ class SemanticKernelAdapter(AgentAdapter):
         except Exception:
             pass  # Best-effort cleanup
         finally:
-            self._active_filter = None
+            self._active_filter = None  # type: ignore[assignment]
 
     # -- Internal: step building ----------------------------------------------
 

@@ -48,16 +48,15 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
+from pydantic import BaseModel, Field, field_validator
+
 try:
-    from enum import StrEnum
+    from enum import StrEnum  # type: ignore[attr-defined]
 except ImportError:
     from enum import Enum
 
-    class StrEnum(str, Enum):  # Python 3.10 compat
+    class StrEnum(str, Enum):  # type: ignore[no-redef]  # Python 3.10 compat
         pass
-
-
-from pydantic import BaseModel, Field, field_validator
 
 from agentassay.verdicts.verdict import StochasticVerdict, VerdictStatus
 
@@ -235,11 +234,11 @@ class DeploymentGate:
                 f"Insufficient trials: {verdict.num_trials} < "
                 f"{self._config.min_trials_per_scenario} minimum"
             )
-            return (GateDecision.SKIP, reason)
+            return (GateDecision.SKIP, reason)  # type: ignore[return-value]
 
         if verdict.status == VerdictStatus.FAIL:
             reason = self._build_fail_reason(verdict)
-            return (GateDecision.BLOCK, reason)
+            return (GateDecision.BLOCK, reason)  # type: ignore[return-value]
 
         if verdict.status == VerdictStatus.PASS:
             # Double-check: even if the verdict says PASS, verify pass rate
@@ -249,7 +248,7 @@ class DeploymentGate:
                     f"Pass rate CI upper ({verdict.pass_rate_ci[1]:.4f}) "
                     f"below gate minimum ({self._config.min_pass_rate:.4f})"
                 )
-                return (GateDecision.BLOCK, reason)
+                return (GateDecision.BLOCK, reason)  # type: ignore[return-value]
 
             # Check regression magnitude if this is a regression verdict
             if self._is_regression_beyond_tolerance(verdict):
@@ -260,13 +259,13 @@ class DeploymentGate:
                     f"current={verdict.pass_rate:.4f}, "
                     f"max_drop={self._config.max_regression_pct:.2%}"
                 )
-                return (GateDecision.BLOCK, reason)
+                return (GateDecision.BLOCK, reason)  # type: ignore[return-value]
 
             reason = (
                 f"Pass: rate={verdict.pass_rate:.4f}, "
                 f"CI=[{verdict.pass_rate_ci[0]:.4f}, {verdict.pass_rate_ci[1]:.4f}]"
             )
-            return (GateDecision.DEPLOY, reason)
+            return (GateDecision.DEPLOY, reason)  # type: ignore[return-value]
 
         # INCONCLUSIVE
         if self._config.block_on_inconclusive:
@@ -276,14 +275,14 @@ class DeploymentGate:
                 f"Rate={verdict.pass_rate:.4f}, "
                 f"CI=[{verdict.pass_rate_ci[0]:.4f}, {verdict.pass_rate_ci[1]:.4f}]"
             )
-            return (GateDecision.BLOCK, reason)
+            return (GateDecision.BLOCK, reason)  # type: ignore[return-value]
 
         reason = (
             f"Inconclusive: rate={verdict.pass_rate:.4f}, "
             f"CI=[{verdict.pass_rate_ci[0]:.4f}, {verdict.pass_rate_ci[1]:.4f}]. "
             f"Consider running more trials."
         )
-        return (GateDecision.WARN, reason)
+        return (GateDecision.WARN, reason)  # type: ignore[return-value]
 
     def evaluate_suite(
         self,
@@ -308,7 +307,7 @@ class DeploymentGate:
             Tuple of (overall_decision, per_scenario_decisions).
         """
         if not verdicts:
-            return (GateDecision.SKIP, {})
+            return (GateDecision.SKIP, {})  # type: ignore[return-value]
 
         per_scenario: dict[str, GateDecision] = {}
         per_reason: dict[str, str] = {}
@@ -339,7 +338,7 @@ class DeploymentGate:
         """
         if not verdicts:
             return GateReport(
-                overall_decision=GateDecision.SKIP,
+                overall_decision=GateDecision.SKIP,  # type: ignore[arg-type]
                 scenario_decisions={},
                 scenario_reasons={},
                 total_scenarios=0,
@@ -362,14 +361,14 @@ class DeploymentGate:
         decisions = list(per_scenario.values())
 
         return GateReport(
-            overall_decision=overall,
+            overall_decision=overall,  # type: ignore[arg-type]
             scenario_decisions=per_scenario,
             scenario_reasons=per_reason,
             total_scenarios=len(decisions),
-            passed_scenarios=decisions.count(GateDecision.DEPLOY),
-            blocked_scenarios=decisions.count(GateDecision.BLOCK),
-            warned_scenarios=decisions.count(GateDecision.WARN),
-            skipped_scenarios=decisions.count(GateDecision.SKIP),
+            passed_scenarios=decisions.count(GateDecision.DEPLOY),  # type: ignore[arg-type]
+            blocked_scenarios=decisions.count(GateDecision.BLOCK),  # type: ignore[arg-type]
+            warned_scenarios=decisions.count(GateDecision.WARN),  # type: ignore[arg-type]
+            skipped_scenarios=decisions.count(GateDecision.SKIP),  # type: ignore[arg-type]
             config=self._config,
         )
 
@@ -385,31 +384,31 @@ class DeploymentGate:
         decisions = list(per_scenario.values())
 
         if not decisions:
-            return GateDecision.SKIP
+            return GateDecision.SKIP  # type: ignore[return-value]
 
         # Filter out SKIP if not requiring all scenarios
         active_decisions = decisions
         if not self._config.require_all_scenarios:
             active_decisions = [d for d in decisions if d != GateDecision.SKIP]
             if not active_decisions:
-                return GateDecision.SKIP
+                return GateDecision.SKIP  # type: ignore[return-value]
 
         # BLOCK dominates everything
         if GateDecision.BLOCK in active_decisions:
-            return GateDecision.BLOCK
+            return GateDecision.BLOCK  # type: ignore[return-value]
 
         # WARN next priority
         if GateDecision.WARN in active_decisions:
-            return GateDecision.WARN
+            return GateDecision.WARN  # type: ignore[return-value]
 
         # All remaining scenarios must be DEPLOY or SKIP
         if all(d in (GateDecision.DEPLOY, GateDecision.SKIP) for d in active_decisions):
             # If requiring all and some are SKIP, that means insufficient data
             if self._config.require_all_scenarios and GateDecision.SKIP in decisions:
-                return GateDecision.SKIP
-            return GateDecision.DEPLOY
+                return GateDecision.SKIP  # type: ignore[return-value]
+            return GateDecision.DEPLOY  # type: ignore[return-value]
 
-        return GateDecision.SKIP
+        return GateDecision.SKIP  # type: ignore[return-value]
 
     def _is_regression_beyond_tolerance(self, verdict: StochasticVerdict) -> bool:
         """Check if a regression exceeds the configured tolerance.

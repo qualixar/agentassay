@@ -84,12 +84,15 @@ def coverage_command(
     )
 
     # Try to reconstruct traces from results JSON
+    from typing import Any
+
+    items: list[Any] = []
     if isinstance(results_data, list):
         items = results_data
     elif isinstance(results_data, dict):
-        items = results_data.get("results", results_data.get("trials", []))
-    else:
-        items = []
+        temp = results_data.get("results", results_data.get("trials", []))
+        if isinstance(temp, list):
+            items = temp
 
     trace_count = 0
     tools_observed: set[str] = set()

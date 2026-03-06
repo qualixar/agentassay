@@ -529,4 +529,4 @@ class VertexAIAgentsAdapter(AgentAdapter):
         completion_cost = (
             token_usage.get("completion_tokens", 0) * self._pricing["completion_per_token"]
         )
-        return prompt_cost + completion_cost
+        return float(prompt_cost + completion_cost)

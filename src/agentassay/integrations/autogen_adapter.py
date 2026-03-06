@@ -235,7 +235,7 @@ class AutoGenAdapter(AgentAdapter):
     def _run_initiate_chat(self, message: str) -> tuple[list[StepTrace], Any]:
         """Execute using legacy ``initiate_chat()`` pattern."""
         step_start = time.perf_counter()
-        chat_result = self._user_proxy.initiate_chat(self._agent, message=message)
+        chat_result = self._user_proxy.initiate_chat(self._agent, message=message)  # type: ignore[union-attr]
         duration_ms = (time.perf_counter() - step_start) * 1000.0
 
         return self._extract_from_chat_history(chat_result, duration_ms)

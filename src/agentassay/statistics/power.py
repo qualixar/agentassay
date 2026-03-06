@@ -103,7 +103,7 @@ def required_sample_size(
     n = numerator / denominator
 
     # Round up — you can't run half a trial.
-    return math.ceil(n)
+    return int(math.ceil(n))
 
 
 def achieved_power(

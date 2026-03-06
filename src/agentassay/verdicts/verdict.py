@@ -58,17 +58,15 @@ References:
 from __future__ import annotations
 
 from datetime import datetime, timezone
+from typing import Any
 
 try:
-    from enum import StrEnum
+    from enum import StrEnum  # type: ignore[attr-defined]
 except ImportError:
     from enum import Enum
 
-    class StrEnum(str, Enum):  # Python 3.10 compat
+    class StrEnum(str, Enum):  # type: ignore[no-redef]  # Python 3.10 compat
         pass
-
-
-from typing import Any
 
 import numpy as np
 from pydantic import BaseModel, Field, field_validator, model_validator
@@ -316,17 +314,18 @@ class VerdictFunction:
         )
 
         # Decision logic per Definition 3.2
+        status: VerdictStatus  # type: ignore[assignment]
         if below_minimum:
-            status = VerdictStatus.INCONCLUSIVE
+            status = VerdictStatus.INCONCLUSIVE  # type: ignore[assignment]
             reason = f"Insufficient trials: {n} < {min_required} minimum required"
         elif ci_lower >= threshold:
-            status = VerdictStatus.PASS
+            status = VerdictStatus.PASS  # type: ignore[assignment]
             reason = f"CI lower bound ({ci_lower:.4f}) >= threshold ({threshold:.4f})"
         elif ci_upper < threshold:
-            status = VerdictStatus.FAIL
+            status = VerdictStatus.FAIL  # type: ignore[assignment]
             reason = f"CI upper bound ({ci_upper:.4f}) < threshold ({threshold:.4f})"
         else:
-            status = VerdictStatus.INCONCLUSIVE
+            status = VerdictStatus.INCONCLUSIVE  # type: ignore[assignment]
             reason = (
                 f"CI [{ci_lower:.4f}, {ci_upper:.4f}] straddles "
                 f"threshold ({threshold:.4f}). Need more trials."
@@ -423,14 +422,15 @@ class VerdictFunction:
         )
 
         # Decision logic
+        status: VerdictStatus  # type: ignore[assignment]
         if below_minimum:
-            status = VerdictStatus.INCONCLUSIVE
+            status = VerdictStatus.INCONCLUSIVE  # type: ignore[assignment]
             reason = (
                 f"Insufficient trials: baseline={n_baseline}, "
                 f"current={n_current}, minimum={min_required}"
             )
         elif hyp_result.regression_detected:
-            status = VerdictStatus.FAIL
+            status = VerdictStatus.FAIL  # type: ignore[assignment]
             reason = (
                 f"Regression detected: p={hyp_result.p_value:.6f} < "
                 f"alpha={self._alpha}, current rate ({p_current:.4f}) < "
@@ -439,14 +439,14 @@ class VerdictFunction:
                 f"({hyp_result.effect_size_interpretation})"
             )
         elif hyp_result.power is not None and hyp_result.power >= (1.0 - self._beta):
-            status = VerdictStatus.PASS
+            status = VerdictStatus.PASS  # type: ignore[assignment]
             reason = (
                 f"No regression: p={hyp_result.p_value:.6f} >= "
                 f"alpha={self._alpha}, power={hyp_result.power:.4f} >= "
                 f"{1.0 - self._beta:.4f}"
             )
         elif hyp_result.power is not None and hyp_result.power < (1.0 - self._beta):
-            status = VerdictStatus.INCONCLUSIVE
+            status = VerdictStatus.INCONCLUSIVE  # type: ignore[assignment]
             reason = (
                 f"Underpowered: p={hyp_result.p_value:.6f} >= "
                 f"alpha={self._alpha}, but power={hyp_result.power:.4f} < "
@@ -456,13 +456,13 @@ class VerdictFunction:
             # Power could not be estimated — treat as inconclusive unless
             # the pass rates are identical (strong evidence of no regression)
             if abs(p_current - p_baseline) < 1e-10:
-                status = VerdictStatus.PASS
+                status = VerdictStatus.PASS  # type: ignore[assignment]
                 reason = (
                     f"No regression: pass rates are identical "
                     f"({p_baseline:.4f}), p={hyp_result.p_value:.6f}"
                 )
             else:
-                status = VerdictStatus.INCONCLUSIVE
+                status = VerdictStatus.INCONCLUSIVE  # type: ignore[assignment]
                 reason = (
                     f"Cannot estimate power. p={hyp_result.p_value:.6f} >= "
                     f"alpha={self._alpha}. Recommend more trials."
@@ -575,14 +575,15 @@ class VerdictFunction:
         current_mean = float(np.mean(current_arr))
         baseline_mean = float(np.mean(baseline_arr))
 
+        status: VerdictStatus  # type: ignore[assignment]
         if below_minimum:
-            status = VerdictStatus.INCONCLUSIVE
+            status = VerdictStatus.INCONCLUSIVE  # type: ignore[assignment]
             reason = (
                 f"Insufficient samples: baseline={n_baseline}, "
                 f"current={n_current}, minimum={min_required}"
             )
         elif hyp_result.regression_detected:
-            status = VerdictStatus.FAIL
+            status = VerdictStatus.FAIL  # type: ignore[assignment]
             reason = (
                 f"Score regression detected: p={hyp_result.p_value:.6f} < "
                 f"alpha={self._alpha}, current mean ({current_mean:.4f}) < "
@@ -591,10 +592,10 @@ class VerdictFunction:
                 f"({hyp_result.effect_size_interpretation})"
             )
         elif hyp_result.p_value >= self._alpha:
-            status = VerdictStatus.PASS
+            status = VerdictStatus.PASS  # type: ignore[assignment]
             reason = f"No score regression: p={hyp_result.p_value:.6f} >= alpha={self._alpha}"
         else:
-            status = VerdictStatus.INCONCLUSIVE
+            status = VerdictStatus.INCONCLUSIVE  # type: ignore[assignment]
             reason = f"Ambiguous: p={hyp_result.p_value:.6f}, direction unclear"
 
         return StochasticVerdict(
@@ -649,7 +650,7 @@ class VerdictFunction:
             details["note"] = note
 
         return StochasticVerdict(
-            status=VerdictStatus.INCONCLUSIVE,
+            status=VerdictStatus.INCONCLUSIVE,  # type: ignore[arg-type]
             confidence=self._confidence_level,
             pass_rate=0.0,
             pass_rate_ci=(0.0, 1.0),

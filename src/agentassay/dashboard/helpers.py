@@ -151,7 +151,7 @@ def metric_card(
     """
     import streamlit as st
 
-    st.metric(label=label, value=value, delta=delta, delta_color=delta_color)
+    st.metric(label=label, value=value, delta=delta, delta_color=delta_color)  # type: ignore[arg-type]
 
 
 # ── Chart factories ────────────────────────────────────────────────────

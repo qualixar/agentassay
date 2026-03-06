@@ -114,7 +114,7 @@ class AgentAdapter(ABC):
         return AgentConfig(
             agent_id=str(uuid.uuid4()),
             name=self._agent_name,
-            framework=self.framework,
+            framework=self.framework,  # type: ignore[arg-type]
             model=self._model,
             metadata=self._metadata,
         )

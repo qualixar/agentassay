@@ -122,7 +122,7 @@ class PathCoverageTracker:
             return 0.0
 
         ratio = len(self._paths) / estimated_total
-        return min(ratio, 1.0)
+        return float(min(ratio, 1.0))
 
     def unique_paths(self) -> set[tuple[str, ...]]:
         """All unique decision paths observed so far.

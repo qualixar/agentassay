@@ -142,7 +142,8 @@ class DecompositionRelation(MetamorphicRelation):
         falls back to the default heuristic.
         """
         if self.decompose_fn is not None:
-            return self.decompose_fn(scenario)
+            result: list[TestScenario] = self.decompose_fn(scenario)
+            return result
         return self._default_decompose(scenario)
 
     def transform_input(self, scenario: TestScenario) -> TestScenario:

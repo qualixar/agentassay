@@ -37,23 +37,23 @@ from agentassay.verdicts.verdict import StochasticVerdict, VerdictStatus
 # ---------------------------------------------------------------------------
 
 _VERDICT_STYLES: dict[VerdictStatus, str] = {
-    VerdictStatus.PASS: "bold green",
-    VerdictStatus.FAIL: "bold red",
-    VerdictStatus.INCONCLUSIVE: "bold yellow",
+    VerdictStatus.PASS: "bold green",  # type: ignore[dict-item]
+    VerdictStatus.FAIL: "bold red",  # type: ignore[dict-item]
+    VerdictStatus.INCONCLUSIVE: "bold yellow",  # type: ignore[dict-item]
 }
 
 _GATE_STYLES: dict[GateDecision, str] = {
-    GateDecision.DEPLOY: "bold green",
-    GateDecision.BLOCK: "bold red",
-    GateDecision.WARN: "bold yellow",
-    GateDecision.SKIP: "bold dim",
+    GateDecision.DEPLOY: "bold green",  # type: ignore[dict-item]
+    GateDecision.BLOCK: "bold red",  # type: ignore[dict-item]
+    GateDecision.WARN: "bold yellow",  # type: ignore[dict-item]
+    GateDecision.SKIP: "bold dim",  # type: ignore[dict-item]
 }
 
 _GATE_ICONS: dict[GateDecision, str] = {
-    GateDecision.DEPLOY: "[green]DEPLOY[/green]",
-    GateDecision.BLOCK: "[red]BLOCK[/red]",
-    GateDecision.WARN: "[yellow]WARN[/yellow]",
-    GateDecision.SKIP: "[dim]SKIP[/dim]",
+    GateDecision.DEPLOY: "[green]DEPLOY[/green]",  # type: ignore[dict-item]
+    GateDecision.BLOCK: "[red]BLOCK[/red]",  # type: ignore[dict-item]
+    GateDecision.WARN: "[yellow]WARN[/yellow]",  # type: ignore[dict-item]
+    GateDecision.SKIP: "[dim]SKIP[/dim]",  # type: ignore[dict-item]
 }
 
 

@@ -389,7 +389,7 @@ def _l2_distance(a: list[float], b: list[float]) -> float:
         va = a[i] if i < len(a) else 0.0
         vb = b[i] if i < len(b) else 0.0
         total += (va - vb) ** 2
-    return total**0.5
+    return float(total**0.5)
 
 
 def _cosine_similarity(a: list[float], b: list[float]) -> float:
@@ -407,7 +407,7 @@ def _cosine_similarity(a: list[float], b: list[float]) -> float:
 
     if mag_a == 0.0 or mag_b == 0.0:
         return 0.0
-    return dot / (mag_a**0.5 * mag_b**0.5)
+    return float(dot / (mag_a**0.5 * mag_b**0.5))
 
 
 def _max_abs_delta(a: list[float], b: list[float]) -> float:

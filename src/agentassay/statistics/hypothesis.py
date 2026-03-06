@@ -56,16 +56,15 @@ References:
 
 from __future__ import annotations
 
+from collections.abc import Sequence
+
 try:
-    from enum import StrEnum
+    from enum import StrEnum  # type: ignore[attr-defined]
 except ImportError:
     from enum import Enum
 
-    class StrEnum(str, Enum):  # Python 3.10 compat
+    class StrEnum(str, Enum):  # type: ignore[no-redef]  # Python 3.10 compat
         pass
-
-
-from collections.abc import Sequence
 
 from pydantic import BaseModel
 from scipy import stats as sp_stats

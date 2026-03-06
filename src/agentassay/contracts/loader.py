@@ -102,7 +102,7 @@ class ContractLoader:
             raise FileNotFoundError(f"Contract file not found: {resolved}")
 
         try:
-            import yaml
+            import yaml  # type: ignore[import-untyped]
         except ImportError as exc:
             raise ContractLoadError(
                 "PyYAML is required to load contract YAML files. "

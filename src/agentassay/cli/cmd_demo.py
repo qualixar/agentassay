@@ -247,11 +247,11 @@ def demo_command(no_browser: bool, output_dir: str, trials: int) -> None:
         console.print(f"  • {scenario['name']} ({trials} trials)")
 
         traces, trial_results = _generate_demo_scenario(
-            scenario_id=scenario["id"],
-            scenario_name=scenario["name"],
-            pass_rate=scenario["pass_rate"],
+            scenario_id=str(scenario["id"]),
+            scenario_name=str(scenario["name"]),
+            pass_rate=float(scenario["pass_rate"]),  # type: ignore[arg-type]
             num_trials=trials,
-            tool_names=scenario["tools"],
+            tool_names=list(scenario["tools"]),  # type: ignore[arg-type,call-overload]
         )
 
         # ──────────────────────────────────────────────────────────────
@@ -266,7 +266,7 @@ def demo_command(no_browser: bool, output_dir: str, trials: int) -> None:
         # Step 3: Compute coverage
         # ──────────────────────────────────────────────────────────────
 
-        known_tools = set(scenario["tools"])
+        known_tools = set(scenario["tools"])  # type: ignore[call-overload]
         known_models = {"gpt-4o"}
         collector = AgentCoverageCollector(
             known_tools=known_tools,

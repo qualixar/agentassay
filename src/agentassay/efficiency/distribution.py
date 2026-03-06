@@ -74,12 +74,14 @@ class FingerprintDistribution:
     @property
     def mean_vector(self) -> np.ndarray:
         """Mean fingerprint vector, shape (d,) float64."""
-        return self._mean.copy()
+        result: np.ndarray = self._mean.copy()
+        return result
 
     @property
     def covariance(self) -> np.ndarray:
         """Sample covariance matrix, shape (d, d) positive semi-definite."""
-        return self._cov.copy()
+        result: np.ndarray = self._cov.copy()
+        return result
 
     @property
     def behavioral_variance(self) -> float:
@@ -233,9 +235,10 @@ def _pooled_covariance(
     denom = n1 + n2 - 2
     if denom <= 0:
         # Degenerate: return average
-        return (s1 + s2) / 2.0
+        result: np.ndarray = (s1 + s2) / 2.0
+        return result
 
-    pooled = ((n1 - 1) * s1 + (n2 - 1) * s2) / denom
+    pooled: np.ndarray = ((n1 - 1) * s1 + (n2 - 1) * s2) / denom
     return pooled
 
 

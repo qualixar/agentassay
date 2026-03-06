@@ -171,7 +171,7 @@ def create_adapter(
     # All other adapters: first positional arg is the agent/graph/crew object
     # The parameter name varies by adapter, but they all accept it as
     # the first positional argument after self.
-    return adapter_cls(agent, **kwargs)  # type: ignore[call-arg]
+    return adapter_cls(agent, **kwargs)  # type: ignore[call-arg,misc]
 
 
 def list_adapters() -> dict[str, type[AgentAdapter]]:

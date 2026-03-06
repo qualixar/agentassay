@@ -29,7 +29,7 @@ QualixarWatermark
     Steganographic watermarking for IP protection (Layer 3).
 """
 
-__version__ = "0.1.1"
+__version__ = "0.1.2"
 
 # Core classes
 # Attribution (Qualixar 3-Layer System)

@@ -54,7 +54,8 @@ def load_json(path: str, label: str) -> dict[str, Any] | list[Any]:
         raise click.ClickException(f"{label} path is not a file: {path}")
     try:
         text = p.read_text(encoding="utf-8")
-        return json.loads(text)
+        result: dict[str, Any] | list[Any] = json.loads(text)
+        return result
     except json.JSONDecodeError:
         raise click.ClickException(f"Invalid JSON syntax in {label} file")
     except OSError:
