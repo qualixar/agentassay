@@ -43,17 +43,29 @@ coverage.xml
 .DS_Store
 Thumbs.db
 
-# Experiments
+# Experiments (internal — costs, configs, infra, analysis)
 experiments/results/
 experiments/figures/*.png
 experiments/figures/*.pdf
 experiments/logs/
+experiments/cost_log.json
+experiments/configs/
+experiments/analysis/
+experiments/runner/
+experiments/scenarios/
+experiments/infra/
 status.json
 
-# Plan (internal — keep private until launch)
+# Plan (internal)
 plan/
 
-# Paper build artifacts
+# Paper source (keep only compiled PDF and figures)
+paper/*.tex
+paper/*.bib
+paper/appendix/
+paper/tables/
+paper/sections/
+paper/*-arxiv*.tar.gz
 paper/*.aux
 paper/*.log
 paper/*.out
@@ -64,11 +76,22 @@ paper/*.fdb_latexmk
 paper/*.fls
 paper/*.synctex.gz
 
-# Internal docs (IP-sensitive — never commit)
+# Research (competitive analysis — internal strategy)
+research/
+
+# Internal docs and roadmaps
 .backup/
 *.backup-*
+docs/plans/
 
-# Infra state (contains IPs, resource IDs — never commit)
+# Internal instructions (session-specific)
+CLAUDE.md
+.env.template
+
+# Session metadata
+.claude/
+
+# Infra state
 experiments/infra/.vm-state.json
 experiments/infra/.last-pull-timestamp
 
