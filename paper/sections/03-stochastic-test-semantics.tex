@@ -1,0 +1,461 @@
+% ============================================================================
+% Section 3: Stochastic Test Semantics
+% ============================================================================
+
+\section{Stochastic Test Semantics}
+\label{sec:stochastic}
+
+This section presents the formal foundation of \agentassay{}: a
+stochastic test semantics that replaces binary pass/fail verdicts with
+three-valued probabilistic outcomes backed by statistical guarantees.
+
+\subsection{Preliminaries}
+\label{sec:stochastic:prelim}
+
+We begin by formalizing the objects under test.
+
+\begin{definition}[Agent]
+\label{def:agent}
+An \emph{agent} is a tuple $A = (\pi, \mathcal{T}, \mu, \omega)$ where:
+\begin{itemize}[leftmargin=*]
+  \item $\pi$ is the agent's \emph{prompt} (system instructions, persona,
+    goals),
+  \item $\mathcal{T} = \{t_1, t_2, \ldots, t_k\}$ is the set of
+    available \emph{tools},
+  \item $\mu$ is the underlying \emph{language model} (including its
+    version, temperature, and sampling parameters), and
+  \item $\omega$ is the \emph{orchestration logic} (the control flow
+    governing tool selection and multi-step execution).
+\end{itemize}
+\end{definition}
+
+\begin{definition}[Agent Execution Trace]
+\label{def:trace}
+An \emph{execution trace} of agent $A$ on input $x$ is a sequence
+$\tau = (s_1, s_2, \ldots, s_m)$ where each \emph{step} $s_i$ is a
+tuple:
+\[
+  s_i = (a_i, t_i, o_i, c_i)
+\]
+with $a_i \in \mathcal{A}$ the \emph{action} (reason, call\_tool,
+respond), $t_i \in \mathcal{T} \cup \{\bot\}$ the \emph{tool invoked}
+(or $\bot$ if no tool call), $o_i$ the \emph{output} of the step, and
+$c_i \in \mathbb{R}_{\geq 0}$ the \emph{cost} (API tokens, latency, monetary).
+The \emph{final output} of a trace is $\mathrm{out}(\tau) = o_m$.
+\end{definition}
+
+Because agent $A$ is stochastic, repeated executions on the same input
+$x$ produce a \emph{distribution} over traces. We write
+$\tau \sim A(x)$ to denote a trace sampled from this distribution.
+
+\begin{definition}[Evaluator]
+\label{def:evaluator}
+An \emph{evaluator} is a function $E: \mathcal{X} \times
+\mathcal{O} \to \{0, 1\}$ that maps an input $x$ and an output $o$ to a
+binary judgment: $E(x, o) = 1$ if the output is acceptable and
+$E(x, o) = 0$ otherwise. An evaluator may be:
+\begin{enumerate}[leftmargin=*]
+  \item \emph{Deterministic}: a rule-based check (e.g., ``output
+    contains keyword $k$''),
+  \item \emph{Model-based}: an LLM judge with its own stochasticity, or
+  \item \emph{Contract-based}: a behavioral contract from
+    \agentassert{}~\citep{bhardwaj2026abc}.
+\end{enumerate}
+\end{definition}
+
+\begin{remark}
+When the evaluator is itself stochastic (model-based), the test
+introduces a second source of randomness. Our framework handles this by
+treating the composition of agent and evaluator as a single stochastic
+process. We discuss this further in \cref{sec:discussion}.
+\end{remark}
+
+\subsection{Test Scenarios and the Test Triple}
+\label{sec:stochastic:scenario}
+
+\begin{definition}[Test Scenario]
+\label{def:scenario}
+A \emph{test scenario} is a tuple $S = (x, \mathcal{P}, E)$ where:
+\begin{itemize}[leftmargin=*]
+  \item $x \in \mathcal{X}$ is the \emph{input} to the agent,
+  \item $\mathcal{P}$ is the set of \emph{expected properties} (natural
+    language descriptions, formal assertions, or contract references),
+  \item $E$ is the \emph{evaluator} (\cref{def:evaluator}).
+\end{itemize}
+\end{definition}
+
+\begin{definition}[$(\alpha, \beta, n)$-Test Triple]
+\label{def:test-triple}
+A \emph{stochastic test} is parameterized by a triple
+$T = (\alpha, \beta, n)$ where:
+\begin{itemize}[leftmargin=*]
+  \item $\alpha \in (0, 1)$ is the \emph{significance level} (upper
+    bound on Type~I error probability---the probability of declaring
+    \FAIL{} when the agent actually meets the threshold),
+  \item $\beta \in (0, 1)$ is the \emph{Type~II error probability}
+    (upper bound on the probability of declaring \PASS{} when the agent
+    is actually below the threshold; $1 - \beta$ is the \emph{power}),
+  \item $n \in \N_{\geq 1}$ is the \emph{number of trials} (independent
+    executions of the agent on the test scenario).
+\end{itemize}
+\end{definition}
+
+The three parameters are not independent. For a given effect size
+$\delta$ (the minimum regression magnitude to detect), the required
+sample size is:
+\begin{equation}
+\label{eq:sample-size}
+  n^*(\alpha, \beta, \delta) =
+    \left\lceil
+      \frac{(z_{1-\alpha/2} + z_{1-\beta})^2 \cdot
+            2\hat{p}(1-\hat{p})}{\delta^2}
+    \right\rceil
+\end{equation}
+where $z_q$ denotes the $q$-quantile of the standard normal distribution
+and $\hat{p}$ is the estimated pass rate under $H_0$.
+
+\noindent\textit{Remark.} Equation~\eqref{eq:sample-size} uses the
+two-sided quantile $z_{1-\alpha/2}$ for the single-version threshold
+test. The regression test (\cref{eq:required-n}) uses the one-sided
+quantile $z_{1-\alpha}$, matching the one-sided alternative
+$H_1: p_c < p_b$.
+
+\subsection{The Verdict Function}
+\label{sec:stochastic:verdict}
+
+\begin{definition}[Stochastic Verdict]
+\label{def:verdict}
+Given a test scenario $S$, a test triple $T = (\alpha, \beta, n)$, a
+pass threshold $\theta \in (0, 1)$, and trial results
+$\mathbf{r} = (r_1, r_2, \ldots, r_n)$ with $r_i = E(x, \mathrm{out}(\tau_i))$
+for independently sampled traces $\tau_i \sim A(x)$, define the
+\emph{observed pass rate}:
+\begin{equation}
+\label{eq:passrate}
+  \hat{p} = \frac{1}{n} \sum_{i=1}^{n} r_i
+\end{equation}
+and the Wilson score confidence interval at level $1-\alpha$:
+\begin{equation}
+\label{eq:wilson}
+  \CI_{1-\alpha}(\hat{p}, n) = \left[
+    \frac{\hat{p} + \frac{z^2}{2n} - z\sqrt{\frac{\hat{p}(1-\hat{p})}{n}
+    + \frac{z^2}{4n^2}}}{1 + \frac{z^2}{n}},\;
+    \frac{\hat{p} + \frac{z^2}{2n} + z\sqrt{\frac{\hat{p}(1-\hat{p})}{n}
+    + \frac{z^2}{4n^2}}}{1 + \frac{z^2}{n}}
+  \right]
+\end{equation}
+where $z = z_{1-\alpha/2}$. Let
+$\CI_{\text{lower}} = \CI_{1-\alpha}(\hat{p}, n)_{\text{lower}}$ and
+$\CI_{\text{upper}} = \CI_{1-\alpha}(\hat{p}, n)_{\text{upper}}$. The
+\emph{verdict function} is:
+\begin{equation}
+\label{eq:verdict}
+  V(\mathbf{r}; \theta, \alpha) =
+  \begin{cases}
+    \PASS & \text{if } \CI_{\text{lower}} \geq \theta \\
+    \FAIL & \text{if } \CI_{\text{upper}} < \theta \\
+    \INCONC & \text{otherwise}
+  \end{cases}
+\end{equation}
+\end{definition}
+
+\begin{example}
+\label{ex:verdict}
+Consider an agent tested with $n = 50$ trials at threshold
+$\theta = 0.85$ and significance $\alpha = 0.05$. If $\hat{p} = 0.90$
+(45 of 50 pass), the Wilson 95\% CI is approximately $[0.789, 0.958]$.
+Since $\CI_{\text{lower}} = 0.789 < 0.85 = \theta$, the verdict is
+\INCONC{}---we cannot yet confirm the agent meets the threshold with 95\%
+confidence. With $n = 100$ and $\hat{p} = 0.90$, the CI narrows to
+approximately $[0.826, 0.946]$: still \INCONC{}. At $n = 200$ with
+$\hat{p} = 0.90$, the CI becomes $[0.853, 0.935]$: now
+$\CI_{\text{lower}} \geq \theta$, so the verdict is \PASS{}.
+\end{example}
+
+The three-valued verdict captures a fundamental truth: \emph{statistical
+evidence can be insufficient}, and the framework should say so rather
+than forcing a premature binary decision.
+
+\begin{theorem}[Verdict Soundness]
+\label{thm:soundness}
+Let $p$ be the true (unknown) pass rate of agent $A$ on scenario $S$
+with evaluator $E$. If $V(\mathbf{r}; \theta, \alpha) = \PASS$ under
+test triple $(\alpha, \beta, n)$, then:
+\begin{enumerate}[leftmargin=*]
+  \item The probability that $V = \PASS$ when $p < \theta$ (false
+    positive) satisfies $\Pr[V = \PASS \mid p < \theta] \leq \alpha$.
+  \item The true pass rate satisfies $p \geq \theta - \varepsilon(n)$
+    with probability at least $1 - \alpha$, where the tolerance
+    $\varepsilon(n) = O(1/\sqrt{n})$ converges to zero.
+\end{enumerate}
+\end{theorem}
+
+\begin{proof}[Proof sketch]
+Part (1) follows from the coverage guarantee of the Wilson confidence
+interval: $\Pr[p \in \CI_{1-\alpha}(\hat{p}, n)] \geq 1 - \alpha$. If
+$p < \theta$, then for $V = \PASS$ to occur, we need
+$\CI_{\text{lower}} \geq \theta > p$, which means $p$ falls below the
+confidence interval. By the coverage guarantee, this happens with
+probability at most $\alpha$.
+
+Part (2) follows from inverting the confidence interval.
+$V = \PASS$ implies $\CI_{\text{lower}} \geq \theta$, and since
+$\CI_{\text{lower}} \leq p + O(1/\sqrt{n})$ with high probability, we
+obtain $p \geq \theta - O(1/\sqrt{n})$.
+
+The full proof, using the Clopper-Pearson exact interval for the formal
+bound, is in \cref{app:proof:soundness}.
+\end{proof}
+
+\subsection{Regression Detection}
+\label{sec:stochastic:regression}
+
+\begin{definition}[Regression Verdict]
+\label{def:regression}
+Given baseline results $\mathbf{r}_b = (r_1^b, \ldots, r_{n_b}^b)$ with
+pass rate $\hat{p}_b = \sum r_i^b / n_b$ and current results
+$\mathbf{r}_c = (r_1^c, \ldots, r_{n_c}^c)$ with pass rate
+$\hat{p}_c = \sum r_i^c / n_c$, define the \emph{regression verdict}:
+\begin{equation}
+\label{eq:regression-verdict}
+  V_{\text{reg}}(\mathbf{r}_b, \mathbf{r}_c; \alpha, \beta, \delta) =
+  \begin{cases}
+    \FAIL & \text{if } p\text{-value}(H_0) < \alpha \text{ and }
+      |\hat{p}_b - \hat{p}_c| \geq \delta \\
+    \PASS & \text{if } p\text{-value}(H_0) \geq \alpha \text{ and }
+      \text{power} \geq 1-\beta \\
+    \INCONC & \text{otherwise}
+  \end{cases}
+\end{equation}
+where $H_0: p_c \geq p_b$ (no regression), $H_1: p_c < p_b$
+(regression occurred), the $p$-value is computed via Fisher's exact test
+or the $Z$-test for proportions, and $\delta > 0$ is the minimum
+\emph{clinically significant} effect size.
+\end{definition}
+
+The dual requirement of statistical significance ($p < \alpha$) \emph{and}
+practical significance ($|\hat{p}_b - \hat{p}_c| \geq \delta$) follows
+the recommendation of Arcuri and Briand~\citep{arcuri2011practical} and
+prevents declaring regressions that are statistically detectable but
+practically negligible.
+
+\begin{theorem}[Regression Detection Power]
+\label{thm:power}
+Given a baseline pass rate $p_b$, a true regressed rate
+$p_c = p_b - \delta$ for effect size $\delta > 0$, and test triple
+$(\alpha, \beta, n)$: if the sample sizes satisfy
+\begin{equation}
+\label{eq:required-n}
+  n_b, n_c \geq n^*(\alpha, \beta, \delta) =
+  \left\lceil
+    \frac{(z_{1-\alpha} + z_{1-\beta})^2 \cdot
+          [p_b(1-p_b) + p_c(1-p_c)]}
+         {\delta^2}
+  \right\rceil
+\end{equation}
+where $p_b$ and $p_c$ are the baseline and current pass rates respectively, then the probability that the
+regression verdict detects the regression satisfies:
+\[
+  \Pr[V_{\text{reg}} = \FAIL \mid p_c = p_b - \delta] \geq 1 - \beta.
+\]
+\end{theorem}
+
+\begin{proof}[Proof sketch]
+Under $H_1: p_c = p_b - \delta$, the test statistic
+$Z = (\hat{p}_b - \hat{p}_c) / \text{SE}$ follows approximately
+$\mathcal{N}(\delta / \text{SE}, 1)$. The critical value is
+$z_{1-\alpha}$, and the probability of exceeding it under $H_1$ is
+$\Pr[Z > z_{1-\alpha}] = \Phi(z_{1-\beta}) = 1-\beta$ when $n$ achieves
+the required sample size. The full proof via the Neyman-Pearson lemma is
+in \cref{app:proof:power}.
+\end{proof}
+
+\begin{definition}[Effect Size Measures]
+\label{def:effect-size}
+We quantify regression magnitude using three complementary measures:
+\begin{enumerate}[leftmargin=*]
+  \item \emph{Absolute difference}: $\Delta = \hat{p}_b - \hat{p}_c$
+  \item \emph{Cohen's $h$}~\citep{cohen1988statistical}:
+    $h = 2\arcsin(\sqrt{\hat{p}_b}) - 2\arcsin(\sqrt{\hat{p}_c})$
+  \item \emph{Odds ratio}: $\text{OR} = \frac{\hat{p}_b / (1-\hat{p}_b)}
+    {\hat{p}_c / (1-\hat{p}_c)}$
+\end{enumerate}
+Cohen's $h$ is the primary measure, with $|h| < 0.2$ indicating a small
+effect, $0.2 \leq |h| < 0.5$ medium, and $|h| \geq 0.5$ large.
+\end{definition}
+
+\subsection{Sequential Probability Ratio Test}
+\label{sec:stochastic:sprt}
+
+Fixed-sample testing (\cref{sec:stochastic:verdict}) requires
+pre-specifying $n$. For agents, where each trial incurs non-trivial cost,
+an adaptive approach is preferable.
+
+\begin{definition}[SPRT for Agent Testing]
+\label{def:sprt}
+Given hypotheses $H_0: p \geq \theta$ and $H_1: p \leq \theta - \delta$,
+define the log-likelihood ratio after $k$ trials:
+\begin{equation}
+\label{eq:sprt-llr}
+  \Lambda_k = \sum_{i=1}^{k} \log \frac{
+    (\theta - \delta)^{r_i} (1 - \theta + \delta)^{1-r_i}
+  }{
+    \theta^{r_i} (1-\theta)^{1-r_i}
+  }
+\end{equation}
+with boundaries $a = \log(\beta / (1-\alpha))$ and
+$b = \log((1-\beta)/\alpha)$. The SPRT decision rule is:
+\begin{equation}
+\label{eq:sprt-rule}
+  V_{\text{SPRT}} =
+  \begin{cases}
+    \PASS & \text{if } \Lambda_k \leq a \\
+    \FAIL & \text{if } \Lambda_k \geq b \\
+    \text{continue testing} & \text{if } a < \Lambda_k < b
+  \end{cases}
+\end{equation}
+\end{definition}
+
+\begin{proposition}[SPRT Efficiency]
+\label{thm:sprt}
+The SPRT (\cref{def:sprt}) satisfies the following classical properties
+of Wald's sequential analysis~\citep{wald1947sequential}:
+\begin{enumerate}[leftmargin=*]
+  \item \textbf{Error control:} $\Pr[\text{accept } H_1 \mid H_0] \leq \alpha$
+    and $\Pr[\text{accept } H_0 \mid H_1] \leq \beta$.
+  \item \textbf{Sample efficiency:} The expected number of trials under
+    $H_0$ and $H_1$ satisfies:
+    \begin{align}
+    \label{eq:sprt-h0}
+      \E[N \mid H_0] &\approx
+        \frac{(1-\alpha)\log\frac{\beta}{1-\alpha} +
+              \alpha\log\frac{1-\beta}{\alpha}}
+             {\theta\log\frac{\theta}{\theta-\delta} +
+              (1-\theta)\log\frac{1-\theta}{1-\theta+\delta}} \\
+    \label{eq:sprt-h1}
+      \E[N \mid H_1] &\approx
+        \frac{\beta\log\frac{\beta}{1-\alpha} +
+              (1-\beta)\log\frac{1-\beta}{\alpha}}
+             {(\theta-\delta)\log\frac{\theta-\delta}{\theta} +
+              (1-\theta+\delta)\log\frac{1-\theta+\delta}{1-\theta}}
+    \end{align}
+  \item \textbf{Optimality:} Among all sequential tests with error
+    probabilities at most $\alpha$ and $\beta$, the SPRT minimizes
+    $\E[N \mid H_i]$ for $i \in \{0, 1\}$ (Wald-Wolfowitz theorem).
+\end{enumerate}
+\end{proposition}
+
+\begin{proof}[Proof sketch]
+Part (1) follows from Wald's fundamental identity for sequential tests.
+Parts (2) and (3) follow from Wald's equation
+$\E[\Lambda_N] = \E[N] \cdot \E[\Lambda_1]$ and the Wald-Wolfowitz
+optimality theorem. See \cref{app:proof:sprt} for the full derivation.
+\end{proof}
+
+\begin{example}
+\label{ex:sprt-savings}
+Consider testing whether an agent maintains $\theta = 0.90$ pass rate
+with $\alpha = 0.05$, $\beta = 0.10$, $\delta = 0.10$. The fixed-sample
+test requires $n^* \approx 109$ trials (\cref{eq:sample-size}). Under
+SPRT:
+\begin{itemize}[leftmargin=*]
+  \item If $p = 0.90$ (agent is fine): $\E[N] \approx 52$ trials
+    (52\% savings).
+  \item If $p = 0.80$ (agent has regressed): $\E[N] \approx 34$ trials
+    (69\% savings).
+\end{itemize}
+The savings are most dramatic when the truth is far from the decision
+boundary.
+\end{example}
+
+\subsection{Bayesian Regression Analysis}
+\label{sec:stochastic:bayesian}
+
+As a complement to the frequentist framework above, we also provide a
+Bayesian perspective.
+
+\begin{definition}[Bayesian Regression Probability]
+\label{def:bayesian}
+Given a Beta prior $p \sim \text{Beta}(a_0, b_0)$ on the pass rate,
+baseline data $\mathbf{r}_b$ yielding posterior
+$p_b \mid \mathbf{r}_b \sim \text{Beta}(a_0 + k_b, b_0 + n_b - k_b)$
+where $k_b = \sum r_i^b$, and current data $\mathbf{r}_c$ yielding
+posterior
+$p_c \mid \mathbf{r}_c \sim \text{Beta}(a_0 + k_c, b_0 + n_c - k_c)$,
+the \emph{Bayesian regression probability} is:
+\begin{equation}
+\label{eq:bayesian-regression}
+  P_{\text{reg}} = \Pr[p_c < p_b - \delta \mid \mathbf{r}_b, \mathbf{r}_c]
+\end{equation}
+computed by sampling or numerical integration over the joint posterior.
+The Bayesian verdict is $\FAIL$ if $P_{\text{reg}} > 1 - \alpha$,
+$\PASS$ if $P_{\text{reg}} < \beta$, and $\INCONC$ otherwise.
+\end{definition}
+
+The Bayesian approach offers three advantages: it directly answers ``what
+is the probability of regression?'' (rather than the indirect frequentist
+framing), it naturally incorporates prior knowledge (e.g., the agent
+historically passes 92\% of the time), and it provides a full posterior
+distribution over the regression magnitude.
+
+\subsection{Connection to Agent Behavioral Contracts}
+\label{sec:stochastic:abc}
+
+The \agentassert{} framework~\citep{bhardwaj2026abc} defines
+\emph{$(p, \delta, k)$-satisfaction}: an agent $(p, \delta, k)$-satisfies
+a behavioral contract $\phi$ if, over $k$ consecutive observations, the
+empirical satisfaction rate exceeds $p$ and the behavioral drift metric
+$D(t)$ remains below $\delta$.
+
+\begin{proposition}[Verdict-Contract Correspondence]
+\label{prop:verdict-contract}
+Let $A$ be an agent with behavioral contract $\phi$ and associated
+evaluator $E_\phi(x, o) = \mathbf{1}[o \models \phi]$. If the
+stochastic test verdict $V(\mathbf{r}; \theta, \alpha) = \PASS$ with
+threshold $\theta = p$ and $n \geq k$, then $A$
+$(p', \delta, k)$-satisfies $\phi$ with
+$p' \geq p - O(1/\sqrt{n})$ and probability at least $1 - \alpha$.
+\end{proposition}
+
+\begin{proof}[Proof sketch]
+The \PASS{} verdict guarantees $\CI_{\text{lower}} \geq \theta = p$ at
+level $1-\alpha$, which implies the true pass rate exceeds $p$. By
+Hoeffding's inequality applied to $k$ consecutive observations within the
+$n$ trials, the empirical rate over any window of $k$ observations
+concentrates around the true rate. See \cref{app:proof:contract} for the
+formal argument.
+\end{proof}
+
+This connection is powerful: it means that \agentassay{} test results
+can directly certify contract compliance, closing the loop between
+\emph{specification} (contracts), \emph{testing} (stochastic verdicts),
+and \emph{enforcement} (runtime monitoring).
+
+\subsection{Test Suite Semantics}
+\label{sec:stochastic:suite}
+
+\begin{definition}[Test Suite Verdict]
+\label{def:suite}
+A \emph{test suite} $\mathcal{S} = \{S_1, S_2, \ldots, S_m\}$ is a
+collection of test scenarios. The \emph{suite verdict} aggregates
+individual verdicts:
+\begin{equation}
+\label{eq:suite-verdict}
+  V_{\text{suite}}(\mathcal{S}) =
+  \begin{cases}
+    \FAIL & \text{if } \exists\, j : V(S_j) = \FAIL \\
+    \INCONC & \text{if } \nexists\, j : V(S_j) = \FAIL \text{ and }
+      \exists\, j : V(S_j) = \INCONC \\
+    \PASS & \text{if } \forall\, j : V(S_j) = \PASS
+  \end{cases}
+\end{equation}
+\end{definition}
+
+\begin{remark}[Multiple Testing Correction]
+When running $m$ scenarios at significance level $\alpha$, the
+family-wise error rate (FWER) can exceed $\alpha$. We apply the
+Holm-Bonferroni correction: order $p$-values $p_{(1)} \leq \cdots \leq
+p_{(m)}$ and reject $H_{0,(j)}$ if
+$p_{(j)} \leq \alpha / (m - j + 1)$. This controls the FWER at level
+$\alpha$ while preserving more power than Bonferroni correction.
+\end{remark}

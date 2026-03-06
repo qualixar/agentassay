@@ -1,0 +1,78 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Testing
+.pytest_cache/
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+*.db
+*.sqlite
+*.sqlite3
+
+# Trace data (experiment artifacts)
+.agentassay/
+
+# MyPy
+.mypy_cache/
+
+# Distribution
+*.egg
+*.whl
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Experiments
+experiments/results/
+experiments/figures/*.png
+experiments/figures/*.pdf
+experiments/logs/
+status.json
+
+# Plan (internal — keep private until launch)
+plan/
+
+# Paper build artifacts
+paper/*.aux
+paper/*.log
+paper/*.out
+paper/*.toc
+paper/*.bbl
+paper/*.blg
+paper/*.fdb_latexmk
+paper/*.fls
+paper/*.synctex.gz
+
+# Internal docs (IP-sensitive — never commit)
+.backup/
+*.backup-*
+
+# Infra state (contains IPs, resource IDs — never commit)
+experiments/infra/.vm-state.json
+experiments/infra/.last-pull-timestamp
+
+# Secrets
+.env
+*.key
+*.pem

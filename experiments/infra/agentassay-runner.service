@@ -1,0 +1,54 @@
+[Unit]
+Description=AgentAssay Experiment Daemon
+Documentation=https://github.com/varun369/agentassay
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=agentassay
+Group=agentassay
+WorkingDirectory=/home/agentassay/agentassay
+
+# Run the experiment daemon with resume capability
+ExecStart=/home/agentassay/.venv/bin/python -m experiments.runner.daemon \
+    --config experiments/configs/ \
+    --results experiments/results/ \
+    --resume
+
+# Environment
+Environment=PYTHONPATH=/home/agentassay/agentassay
+Environment=PYTHONUNBUFFERED=1
+EnvironmentFile=/home/agentassay/agentassay/.env
+
+# Self-healing: restart on any failure
+Restart=always
+RestartSec=30
+StartLimitIntervalSec=600
+StartLimitBurst=10
+
+# Resource limits
+LimitNOFILE=65536
+LimitNPROC=4096
+MemoryMax=6G
+CPUQuota=180%
+
+# Security hardening
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/home/agentassay/agentassay/experiments/results
+ReadWritePaths=/home/agentassay/agentassay/experiments/logs
+ReadWritePaths=/home/agentassay/agentassay/experiments/figures
+ReadWritePaths=/home/agentassay/agentassay/experiments/analysis
+ReadWritePaths=/home/agentassay/agentassay/.agentassay
+ReadWritePaths=/tmp
+PrivateTmp=yes
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=agentassay
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,96 @@
+% ============================================================================
+% Section 11: Conclusion
+% ============================================================================
+
+\section{Conclusion}
+\label{sec:conclusion}
+
+Autonomous AI agents are being deployed at unprecedented scale, yet no
+principled methodology existed for verifying that an agent has not
+regressed after changes to its prompts, tools, models, or orchestration
+logic. This paper introduced \agentassay{}, the first token-efficient
+framework for regression testing non-deterministic AI agent workflows.
+
+Our key insight is that agent testing requires a paradigm shift from
+binary verdicts to \emph{stochastic, three-valued} verdicts
+(\PASS{}/\FAIL{}/\INCONC{}) grounded in statistical hypothesis testing.
+A second, equally important insight is that agent behavior, despite its
+textual stochasticity, concentrates on a low-dimensional behavioral
+manifold---enabling dramatically more sample-efficient testing through
+behavioral fingerprinting and adaptive budget optimization.
+Building on these foundations, we made ten contributions:
+
+\begin{enumerate}[leftmargin=*]
+  \item \textbf{Stochastic test semantics} with the $(\alpha, \beta, n)$-test
+    triple, three-valued verdict function, and provably sound regression
+    detection (\cref{thm:soundness,thm:power}).
+
+  \item \textbf{Agent coverage metrics}---a five-dimensional tuple
+    $(C_{\text{tool}}, C_{\text{path}}, C_{\text{state}},
+    C_{\text{boundary}}, C_{\text{model}})$---that measure test
+    thoroughness for stochastic agent systems (\cref{thm:coverage-mono}).
+
+  \item \textbf{Agent mutation testing} with four classes of
+    domain-specific operators and a formal mutation adequacy theorem
+    (\cref{thm:mutation-adequacy}).
+
+  \item \textbf{Metamorphic relations} tailored to agent workflows,
+    addressing the oracle problem for open-ended agent tasks.
+
+  \item \textbf{CI/CD deployment gates} as statistical decision
+    procedures with configurable risk thresholds.
+
+  \item \textbf{Contract integration} with the \agentassert{} framework,
+    using behavioral contracts as formal test oracles with provable
+    correspondence (\cref{prop:verdict-contract}).
+
+  \item \textbf{SPRT adaptation} for cost-efficient agent testing,
+    achieving \textbf{78\%} trial savings while maintaining error
+    guarantees (\cref{thm:sprt}).
+
+  \item \textbf{Behavioral fingerprinting} that maps execution
+    traces to compact vectors on a low-dimensional manifold,
+    enabling multivariate regression detection with provably
+    higher power per sample (\cref{thm:fingerprint-regression}).
+
+  \item \textbf{Adaptive budget optimization} that calibrates trial
+    counts to actual behavioral variance, achieving 4--7$\times$
+    reduction for stable agents (\cref{thm:adaptive-budget}).
+
+  \item \textbf{Trace-first offline analysis} that eliminates live
+    agent executions for four of six test types with formal soundness
+    guarantees, enabling zero-cost coverage, contract, and metamorphic
+    testing on production traces (\cref{thm:trace-first}).
+\end{enumerate}
+
+The combined token-efficient testing framework achieves
+5--20$\times$ cost reduction (\cref{thm:combined-efficiency}), bringing
+rigorous statistical agent testing within CI/CD budget constraints for
+the first time.
+
+Experiments across \textbf{5} models, \textbf{3} scenarios, and
+\textbf{7{,}605} trials (\$227 total cost) demonstrated that \agentassay{}
+provides statistically rigorous regression detection with practical
+efficiency. Behavioral fingerprinting achieved \textbf{86\%} detection
+power where binary pass/fail testing had \textbf{0\%}, SPRT reduced
+trial counts by \textbf{78\%} consistently across all three scenarios,
+and the full token-efficient pipeline achieved \textbf{100\%} cost
+savings through trace-first offline analysis---all while maintaining
+identical $(\alpha, \beta)$ guarantees.
+
+\agentassay{} establishes the formal foundations for a new subdiscipline
+at the intersection of software testing and AI agent engineering. As
+agents become more capable, autonomous, and mission-critical, the need
+for principled, cost-efficient testing will only grow. We believe that
+the concepts introduced in this paper---stochastic verdicts, agent
+coverage, agent mutation testing, behavioral fingerprinting, and
+token-efficient testing---will become standard practice in the emerging
+field of \emph{Agent Software Engineering}.
+
+\paragraph{Availability.}
+\agentassay{} is available as open-source software under the
+Apache~2.0 license. The implementation comprises ${\sim}$20{,}000 lines of
+Python with 751 tests and adapters for 10 agent frameworks. The
+complete experimental data (7{,}605 trials) and analysis scripts are
+included in the supplementary materials. Zenodo DOI:
+\href{https://doi.org/10.5281/zenodo.18842011}{10.5281/zenodo.18842011}.

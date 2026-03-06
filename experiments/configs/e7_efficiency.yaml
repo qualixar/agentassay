@@ -1,0 +1,64 @@
+experiment:
+  id: e7_efficiency
+  name: "E7: Token-Efficient Testing Evaluation"
+  description: "Validate that behavioral fingerprinting, adaptive budget optimization, and trace-first analysis achieve equivalent statistical guarantees at reduced cost"
+
+models:
+  - name: gpt-5.2-chat
+    subscription: 1
+  - name: claude-sonnet-4-6
+    subscription: 3
+  - name: Mistral-Large-3
+    subscription: 1
+  - name: Llama-4-Maverick-17B-128E-Instruct-FP8
+    subscription: 3
+  - name: Phi-4
+    subscription: 3
+
+scenarios:
+  - ecommerce
+  - customer_support
+  - code_generation
+
+parameters:
+  approaches:
+    - name: "fixed_n"
+      description: "Baseline: fixed N=100 trials"
+      trials: 100
+      use_fingerprinting: false
+      use_adaptive_budget: false
+      use_trace_first: false
+    - name: "sprt_only"
+      description: "Sequential stopping only"
+      max_trials: 200
+      use_sprt: true
+      use_fingerprinting: false
+      use_adaptive_budget: false
+    - name: "sprt_fingerprint"
+      description: "SPRT with Hotelling's T² on fingerprints"
+      max_trials: 200
+      use_sprt: true
+      use_fingerprinting: true
+      use_adaptive_budget: false
+    - name: "sprt_fp_budget"
+      description: "SPRT + fingerprinting + adaptive budget calibration"
+      calibration_size: 10
+      use_sprt: true
+      use_fingerprinting: true
+      use_adaptive_budget: true
+    - name: "full_system"
+      description: "All pillars: trace-first + fingerprinting + budget + SPRT"
+      calibration_size: 10
+      use_sprt: true
+      use_fingerprinting: true
+      use_adaptive_budget: true
+      use_trace_first: true
+
+  repetitions: 25
+  alpha: 0.05
+  beta: 0.10
+  delta: 0.10
+
+output:
+  results_dir: experiments/results/e7/
+  figures_dir: experiments/figures/e7/

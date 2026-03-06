@@ -1,0 +1,294 @@
+% ============================================================================
+% Section 4: Agent Coverage Metrics
+% ============================================================================
+
+\section{Agent Coverage Metrics}
+\label{sec:coverage}
+
+Traditional code coverage metrics---statement, branch, path,
+condition---are defined over deterministic control-flow graphs extracted
+from source code. AI agents do not have source code in the traditional
+sense; their ``code'' is a composition of prompts, tool inventories,
+model weights, and orchestration logic. This section defines
+agent-specific coverage metrics that measure the thoroughness of a
+stochastic test suite.
+
+\subsection{Coverage Dimensions}
+\label{sec:coverage:dimensions}
+
+\begin{definition}[Agent Coverage Tuple]
+\label{def:coverage-tuple}
+The \emph{agent coverage} of a test suite $\mathcal{S}$ executed over
+$N$ total trials is a five-dimensional tuple:
+\begin{equation}
+\label{eq:coverage-tuple}
+  \mathcal{C}(\mathcal{S}) = (C_{\text{tool}}, C_{\text{path}},
+    C_{\text{state}}, C_{\text{boundary}}, C_{\text{model}})
+    \in [0,1]^5
+\end{equation}
+We define each dimension below.
+\end{definition}
+
+\subsubsection{Tool Coverage}
+\label{sec:coverage:tool}
+
+\begin{definition}[Tool Coverage]
+\label{def:tool-coverage}
+Let $\mathcal{T} = \{t_1, \ldots, t_k\}$ be the agent's available tool
+set and $\mathcal{T}_{\text{used}} \subseteq \mathcal{T}$ the subset of
+tools invoked across all traces in the test suite. \emph{Tool coverage}
+is:
+\begin{equation}
+\label{eq:tool-coverage}
+  C_{\text{tool}} = \frac{|\mathcal{T}_{\text{used}}|}{|\mathcal{T}|}
+\end{equation}
+\end{definition}
+
+Tool coverage is the simplest dimension: it measures whether the test
+suite exercises all available tools. An agent with 10 tools but tests
+that only trigger 3 has $C_{\text{tool}} = 0.30$, indicating that 7
+tools are untested and may harbor latent regressions.
+
+\begin{remark}
+Tool coverage does not account for \emph{how} a tool is used---only
+whether it is invoked. A tool called with a single trivial input achieves
+the same $C_{\text{tool}}$ contribution as one exercised across diverse
+inputs. We address input diversity through boundary coverage
+(\cref{def:boundary-coverage}).
+\end{remark}
+
+\subsubsection{Decision-Path Coverage}
+\label{sec:coverage:path}
+
+An agent's execution trace follows a path through a decision space
+defined by tool selections, branching conditions in the orchestration
+logic, and model outputs at each step.
+
+\begin{definition}[Decision Path]
+\label{def:decision-path}
+A \emph{decision path} is the sequence of action-tool pairs in a trace:
+$\rho(\tau) = ((a_1, t_1), (a_2, t_2), \ldots, (a_m, t_m))$. Two
+traces $\tau, \tau'$ have the same decision path if
+$\rho(\tau) = \rho(\tau')$.
+\end{definition}
+
+\begin{definition}[Decision-Path Coverage]
+\label{def:path-coverage}
+Let $\mathcal{P}_{\text{obs}}$ be the set of distinct decision paths
+observed across all traces and $\mathcal{P}_{\text{est}}$ be an estimate
+of the total number of feasible decision paths. \emph{Decision-path
+coverage} is:
+\begin{equation}
+\label{eq:path-coverage}
+  C_{\text{path}} = \frac{|\mathcal{P}_{\text{obs}}|}{|\mathcal{P}_{\text{est}}|}
+\end{equation}
+\end{definition}
+
+The denominator $|\mathcal{P}_{\text{est}}|$ is, in general,
+intractable to compute exactly (the path space may be infinite for
+open-ended agents). We employ two estimation strategies:
+
+\begin{enumerate}[leftmargin=*]
+  \item \textbf{Capture-recapture estimation.} Using the Chao1 estimator
+    from ecology: if we observe $d$ distinct paths, of which $f_1$ appear
+    exactly once and $f_2$ appear exactly twice, then:
+    \begin{equation}
+    \label{eq:chao1}
+      |\mathcal{P}_{\text{est}}| \approx d + \frac{f_1^2}{2 f_2}
+    \end{equation}
+
+  \item \textbf{Orchestration-graph analysis.} For agents with explicit
+    orchestration graphs (e.g., LangGraph state machines), enumerate paths
+    up to a maximum depth $d_{\max}$, yielding a finite upper bound.
+\end{enumerate}
+
+\subsubsection{State-Space Coverage}
+\label{sec:coverage:state}
+
+\begin{definition}[Agent State]
+\label{def:agent-state}
+An \emph{agent state} is a tuple $\sigma = (\ell, \mathbf{v}, h)$ where
+$\ell$ is the current \emph{location} in the orchestration graph,
+$\mathbf{v}$ is the vector of \emph{state variables} (e.g., accumulated
+context, tool outputs, counters), and $h$ is a hash of the
+\emph{conversation history} up to a fixed window.
+\end{definition}
+
+\begin{definition}[State-Space Coverage]
+\label{def:state-coverage}
+Let $\mathcal{S}_{\text{obs}}$ be the set of distinct states observed
+across all traces. Since the full state space is infinite (due to
+natural language content), we project states onto a finite abstraction
+$\pi: \Sigma \to \hat{\Sigma}$ and define:
+\begin{equation}
+\label{eq:state-coverage}
+  C_{\text{state}} = 1 - e^{-|\pi(\mathcal{S}_{\text{obs}})| / \lambda}
+\end{equation}
+where $\lambda > 0$ is a normalization constant set to the expected
+number of distinct abstract states for the agent class (calibrated
+empirically). This formulation maps to $[0, 1)$ and asymptotically
+approaches 1 as more states are discovered.
+\end{definition}
+
+The exponential normalization (\cref{eq:state-coverage}) addresses the
+open-ended nature of agent state spaces. Unlike tool or path coverage,
+which have natural denominators, state-space exploration has no fixed
+ceiling. The exponential form ensures diminishing returns: the first 50
+distinct states contribute more than the next 50.
+
+\subsubsection{Boundary Coverage}
+\label{sec:coverage:boundary}
+
+\begin{definition}[Tool Boundary]
+\label{def:boundary}
+A \emph{tool boundary} for tool $t_j$ is a pair $(p_j^{\text{name}},
+\{v^{\min}, v^{\max}\})$ where $p_j^{\text{name}}$ is a parameter name
+and $v^{\min}, v^{\max}$ are the minimum and maximum values of the
+parameter's domain (or representative extremes for string/object types).
+Let $\mathcal{B}$ denote the set of all tool boundaries.
+\end{definition}
+
+\begin{definition}[Boundary Coverage]
+\label{def:boundary-coverage}
+Let $\mathcal{B}_{\text{tested}} \subseteq \mathcal{B}$ be the set of
+boundaries for which at least one trace invoked the tool with a parameter
+value at or near the boundary (within tolerance $\epsilon$).
+\emph{Boundary coverage} is:
+\begin{equation}
+\label{eq:boundary-coverage}
+  C_{\text{boundary}} = \frac{|\mathcal{B}_{\text{tested}}|}{|\mathcal{B}|}
+\end{equation}
+\end{definition}
+
+Boundary coverage extends the classical boundary-value analysis to agent
+tool invocations. It tests whether the agent exercises edge cases of
+its tools---empty lists, maximum-length strings, zero values, negative
+numbers---which are common sources of failures.
+
+\subsubsection{Model Coverage}
+\label{sec:coverage:model}
+
+\begin{definition}[Model Coverage]
+\label{def:model-coverage}
+Let $\mathcal{M}_{\text{target}}$ be the set of language models the
+agent is intended to support (e.g., GPT-4o, Claude 3.5 Sonnet,
+Gemini 2.0 Flash, Llama 3.3 70B) and
+$\mathcal{M}_{\text{tested}} \subseteq \mathcal{M}_{\text{target}}$ the
+subset tested. \emph{Model coverage} is:
+\begin{equation}
+\label{eq:model-coverage}
+  C_{\text{model}} = \frac{|\mathcal{M}_{\text{tested}}|}{|\mathcal{M}_{\text{target}}|}
+\end{equation}
+\end{definition}
+
+Model coverage captures a dimension unique to LLM-based systems: the
+same agent deployed with different models can exhibit dramatically
+different behaviors. An agent tested only with GPT-4o may fail
+catastrophically on Claude 3.5 Sonnet due to differences in tool-calling
+conventions, reasoning patterns, or output formatting.
+
+\subsection{Aggregate Coverage}
+\label{sec:coverage:aggregate}
+
+\begin{definition}[Overall Coverage]
+\label{def:overall-coverage}
+The \emph{overall coverage} is the geometric mean of the five dimensions:
+\begin{equation}
+\label{eq:overall-coverage}
+  C_{\text{overall}} = \left( \prod_{i=1}^{5} C_i \right)^{1/5}
+\end{equation}
+\end{definition}
+
+We use the geometric mean rather than the arithmetic mean because it
+penalizes imbalance: a test suite with $C_{\text{tool}} = 1.0$ but
+$C_{\text{model}} = 0.0$ should receive low overall coverage, as the
+zero model coverage represents a critical gap.
+
+\begin{remark}[Weighted Coverage]
+In practice, different coverage dimensions may have different importance.
+We support weighted geometric means:
+$C_{\text{overall}}^{(w)} = \prod C_i^{w_i}$ with
+$\sum w_i = 1$, allowing teams to prioritize dimensions relevant to
+their deployment context.
+\end{remark}
+
+\subsection{Coverage Monotonicity}
+\label{sec:coverage:monotonicity}
+
+\begin{theorem}[Coverage Monotonicity]
+\label{thm:coverage-mono}
+For any test suite $\mathcal{S}$ and any additional test execution:
+\begin{enumerate}[leftmargin=*]
+  \item $C_{\text{tool}}, C_{\text{boundary}}, C_{\text{model}}$ are
+    non-decreasing, and strictly increase when a new tool, boundary,
+    or model is observed.
+  \item $C_{\text{state}}$ is non-decreasing in the number of distinct
+    states observed.
+  \item $C_{\text{path}}$ is \emph{asymptotically monotone}: as
+    $|\mathcal{P}_{\text{obs}}| \to \infty$, the Chao1 correction
+    vanishes and $C_{\text{path}} \to 1$. For finite test suites,
+    $C_{\text{path}}$ may temporarily decrease when a new singleton
+    path increases the Chao1 denominator faster than the numerator;
+    this non-monotonicity is bounded by
+    $O(f_1^2 / (f_2 \cdot |\mathcal{P}_{\text{obs}}|^2))$.
+\end{enumerate}
+\end{theorem}
+
+\begin{proof}[Proof sketch]
+Parts (1) and (2) follow directly: numerators are non-decreasing while
+denominators are fixed (part~1), or the coverage function is monotone
+in its argument (part~2). Part (3) follows from the asymptotic
+consistency of the Chao1 estimator~\citep{chao1984nonparametric}: as
+$n \to \infty$, $\hat{S}_{\text{Chao1}} \to S_{\text{total}}$ and
+$C_{\text{path}} \to 1$.
+See \cref{app:proof:coverage} for the formal argument.
+\end{proof}
+
+\subsection{Coverage-Guided Test Generation}
+\label{sec:coverage:generation}
+
+Coverage metrics naturally drive test generation: the framework
+identifies the lowest-coverage dimension and generates inputs designed to
+increase it.
+
+\begin{algorithm}[t]
+\caption{Coverage-Guided Test Input Generation}
+\label{alg:coverage-gen}
+\begin{algorithmic}[1]
+\REQUIRE Agent $A$, current coverage $\mathcal{C}$, target coverage $\mathcal{C}^*$
+\ENSURE New test scenario $S_{\text{new}}$
+\STATE $d^* \gets \argmin_{d \in \{1,\ldots,5\}} C_d / C_d^*$
+  \COMMENT{Identify weakest dimension}
+\IF{$d^* = \text{tool}$}
+  \STATE Generate input $x$ designed to trigger unused tools
+    $\mathcal{T} \setminus \mathcal{T}_{\text{used}}$
+\ELSIF{$d^* = \text{path}$}
+  \STATE Generate input $x$ to explore under-represented orchestration
+    branches
+\ELSIF{$d^* = \text{state}$}
+  \STATE Generate input $x$ to reach novel state regions
+\ELSIF{$d^* = \text{boundary}$}
+  \STATE Generate input $x$ with extreme parameter values for untested
+    boundaries
+\ELSIF{$d^* = \text{model}$}
+  \STATE Select untested model $\mu \in \mathcal{M}_{\text{target}}
+    \setminus \mathcal{M}_{\text{tested}}$
+\ENDIF
+\RETURN $S_{\text{new}} = (x, \mathcal{P}, E)$
+\end{algorithmic}
+\end{algorithm}
+
+\begin{proposition}[Coverage-Fault Correlation]
+\label{prop:coverage-fault}
+Higher agent coverage correlates with higher fault detection probability.
+Formally, for two test suites $\mathcal{S}_1, \mathcal{S}_2$ with
+$\mathcal{C}(\mathcal{S}_1) \geq \mathcal{C}(\mathcal{S}_2)$
+(component-wise), the expected number of distinct faults detected
+satisfies $\E[F(\mathcal{S}_1)] \geq \E[F(\mathcal{S}_2)]$ under mild
+regularity conditions on the fault distribution.
+\end{proposition}
+
+This proposition mirrors the well-established correlation between code
+coverage and fault detection in traditional software
+testing~\citep{zhu1997software}. We validate it empirically in
+\cref{sec:experiments:characterization}.

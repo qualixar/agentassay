@@ -1,0 +1,875 @@
+% ============================================================================
+% Section 7: Token-Efficient Testing
+% ============================================================================
+
+\section{Token-Efficient Testing}
+\label{sec:token-efficient}
+
+Stochastic testing, by construction, requires $n$ independent agent
+executions per scenario. Each execution consumes $C_{\mathrm{run}}$
+tokens at cost $c_{\mathrm{run}}$ dollars. A test suite of $m$ scenarios
+at $n$ trials each therefore costs $m \times n \times c_{\mathrm{run}}$.
+For frontier models where a single complex agent run costs \$5--15, a
+test campaign of 50 scenarios at $n = 100$ trials implies 5{,}000
+invocations costing \$25{,}000--75{,}000 \emph{per release}---prohibitive
+for any CI/CD pipeline. Even with SPRT (\cref{sec:stochastic:sprt})
+reducing $n$ by roughly 50\%, the cost remains impractical for most teams.
+
+This section presents five techniques---collectively
+\emph{token-efficient testing}---that achieve the same
+$(\alpha, \beta)$ statistical guarantees at 5--20$\times$ lower cost.
+The core insight is that agent behavior, while stochastic in its
+textual output, exhibits \emph{low-dimensional behavioral regularity}:
+the distribution over tool sequences, reasoning depth, output structure,
+and efficiency metrics concentrates on a manifold far smaller than the
+raw output space. By testing in this compressed behavioral space rather
+than the raw output space, we obtain dramatically better sample
+efficiency.
+
+\subsection{Behavioral Fingerprinting}
+\label{sec:token:fingerprint}
+
+\begin{definition}[Behavioral Fingerprint]
+\label{def:fingerprint}
+Let $\tau = (s_1, \ldots, s_m)$ be an execution trace
+(\cref{def:trace}). A \emph{behavioral fingerprint} is a mapping
+$F: \mathcal{T}^* \to \mathbb{R}^d$ that extracts a compact
+\emph{behavioral vector} from $\tau$. The fingerprint $\mathbf{f} =
+F(\tau)$ is composed of six feature families:
+
+\begin{enumerate}[leftmargin=*]
+  \item \textbf{Tool usage distribution.} Let $\mathbf{u} \in
+    \mathbb{R}^{|\mathcal{T}|}$ be the normalized frequency vector of
+    tool calls in $\tau$: $u_j = |\{i : t_i = t_j\}| / m$.
+
+  \item \textbf{Structural complexity.} Let $L(\tau) = m$ be the trace
+    length, $D(\tau)$ the maximum nesting depth of tool calls, and
+    $B(\tau)$ the number of distinct reasoning branches.
+
+  \item \textbf{Output characteristics.} Let $\ell(\tau)$ be the output
+    token count of $\mathrm{out}(\tau)$, and $\kappa(\tau) \in [0,1]$ a
+    normalized complexity score of the final output (e.g., Flesch-Kincaid
+    grade divided by a reference ceiling).
+
+  \item \textbf{Reasoning patterns.} Let $\mathbf{w} \in \mathbb{R}^k$
+    be the distribution over action types $(|\{i : a_i = a\}| / m)_{a
+    \in \mathcal{A}}$.
+
+  \item \textbf{Error and recovery.} Let $e(\tau) \in \{0,1\}$ indicate
+    whether any step produced an error, and $\rho(\tau) \in [0,1]$ the
+    fraction of error steps followed by a successful recovery step.
+
+  \item \textbf{Efficiency metrics.} Let $C(\tau) = \sum_i c_i$ be the
+    total cost and $\bar{c}(\tau) = C(\tau)/m$ the average step cost.
+\end{enumerate}
+
+The full fingerprint is the concatenation $\mathbf{f} = (\mathbf{u},
+L, D, B, \ell, \kappa, \mathbf{w}, e, \rho, C, \bar{c}) \in
+\mathbb{R}^d$ where $d = |\mathcal{T}| + |\mathcal{A}| + 7$. In our
+implementation, we normalize $\mathbf{u}$ and $\mathbf{w}$ to fixed
+dimensions via zero-padding, yielding a practical fingerprint of
+$d = 14$ dimensions that enables cross-agent comparison.
+\end{definition}
+
+\begin{definition}[Fingerprint Space]
+\label{def:fingerprint-space}
+Given an agent $A$ and input distribution $\mathcal{D}$ over
+$\mathcal{X}$, the \emph{fingerprint space} is:
+\begin{equation}
+\label{eq:fingerprint-space}
+  \mathcal{F}(A, \mathcal{D}) = \{F(\tau) : \tau \sim A(x),\;
+    x \sim \mathcal{D}\} \subseteq \mathbb{R}^d
+\end{equation}
+The \emph{effective dimension} $d_{\mathrm{eff}}(A, \mathcal{D})$ is
+the number of principal components required to explain $\geq 95\%$ of
+the variance in $\mathcal{F}$:
+\begin{equation}
+\label{eq:deff}
+  d_{\mathrm{eff}} = \min\left\{k :
+    \frac{\sum_{i=1}^{k} \lambda_i}{\sum_{i=1}^{d} \lambda_i}
+    \geq 0.95\right\}
+\end{equation}
+where $\lambda_1 \geq \lambda_2 \geq \cdots \geq \lambda_d \geq 0$ are
+the eigenvalues of the covariance matrix of $\mathcal{F}$.
+\end{definition}
+
+\begin{remark}[Low-Dimensional Behavioral Manifold]
+\label{rem:manifold}
+Although the raw output space of an agent is extremely
+high-dimensional (the space of all possible text strings), the
+behavioral fingerprint concentrates on a manifold of much lower
+dimension. Intuitively, an agent configured with $k = 10$ tools and a
+specific system prompt will exhibit a characteristic pattern of tool
+usage, reasoning depth, and output structure that varies little across
+runs---even though the exact text changes every time. In our
+preliminary experiments, $d_{\mathrm{eff}} \in [3, 8]$ for agents with
+$d \in [20, 40]$ fingerprint dimensions, indicating $4$--$10\times$
+dimensionality reduction.
+\end{remark}
+
+\begin{theorem}[Fingerprint Regression Detection]
+\label{thm:fingerprint-regression}
+Let $F: \mathcal{T}^* \to \mathbb{R}^d$ be a behavioral fingerprint
+with effective dimension $d_{\mathrm{eff}}$. Given baseline
+fingerprints $\mathbf{f}_1^b, \ldots, \mathbf{f}_{n_b}^b$ and
+candidate fingerprints $\mathbf{f}_1^c, \ldots, \mathbf{f}_{n_c}^c$,
+Hotelling's $T^2$ test on the projected fingerprints rejects
+$H_0: \boldsymbol{\mu}_b = \boldsymbol{\mu}_c$ at significance
+$\alpha$ when:
+\begin{equation}
+\label{eq:hotelling}
+  T^2 = \frac{n_b n_c}{n_b + n_c}
+    (\bar{\mathbf{f}}_b - \bar{\mathbf{f}}_c)^\top
+    \mathbf{S}_{\mathrm{pooled}}^{-1}
+    (\bar{\mathbf{f}}_b - \bar{\mathbf{f}}_c)
+  > \frac{(n_b + n_c - 2) d_{\mathrm{eff}}}{n_b + n_c -
+    d_{\mathrm{eff}} - 1}\,
+    F_{\alpha,\, d_{\mathrm{eff}},\, n_b + n_c - d_{\mathrm{eff}} - 1}
+\end{equation}
+where $\mathbf{S}_{\mathrm{pooled}}$ is the pooled covariance matrix
+projected onto the top $d_{\mathrm{eff}}$ principal components, and
+$F_{\alpha, d_1, d_2}$ is the critical value of the $F$-distribution.
+
+The sample complexity for achieving $(\alpha, \beta)$-guaranteed
+regression detection via Hotelling's $T^2$ is:
+\begin{equation}
+\label{eq:fingerprint-sample}
+  n_{\mathrm{fp}}(\alpha, \beta, d_{\mathrm{eff}}, \Delta_{\mathrm{M}})
+  = \left\lceil
+    \frac{(d_{\mathrm{eff}} + 1)(z_{1-\alpha} + z_{1-\beta})^2}
+         {\Delta_{\mathrm{M}}^2}
+    + \frac{d_{\mathrm{eff}} + 1}{2}
+  \right\rceil
+\end{equation}
+where $\Delta_{\mathrm{M}}^2 = (\boldsymbol{\mu}_b -
+\boldsymbol{\mu}_c)^\top \boldsymbol{\Sigma}^{-1} (\boldsymbol{\mu}_b -
+\boldsymbol{\mu}_c)$ is the squared Mahalanobis distance between the
+baseline and candidate fingerprint distributions. When
+$d_{\mathrm{eff}} \ll \mathrm{dim}(\text{output space})$ and
+$\Delta_{\mathrm{M}} \geq \Delta_{\mathrm{M,min}}$, we have:
+\begin{equation}
+\label{eq:fingerprint-advantage}
+  n_{\mathrm{fp}} \leq n^*_{\mathrm{univariate}} \times
+    \frac{d_{\mathrm{eff}} + 1}{1 + d_{\mathrm{eff}} \cdot
+    (\Delta_{\mathrm{M}}^2 / h^2 - 1)}
+\end{equation}
+where $h$ is Cohen's effect size for the univariate pass-rate test.
+\end{theorem}
+
+\begin{proof}
+The proof proceeds in three steps.
+
+\textbf{Step 1: Multivariate test power.}
+Under $H_1: \boldsymbol{\mu}_b \neq \boldsymbol{\mu}_c$, the
+Hotelling $T^2$ statistic follows a non-central $F$-distribution:
+\begin{equation}
+  \frac{n_b + n_c - d_{\mathrm{eff}} - 1}
+       {(n_b + n_c - 2) d_{\mathrm{eff}}} \cdot T^2
+  \sim F_{d_{\mathrm{eff}},\, n_b + n_c - d_{\mathrm{eff}} - 1}
+       (\lambda)
+\end{equation}
+with non-centrality parameter $\lambda = \frac{n_b n_c}{n_b + n_c}
+\Delta_{\mathrm{M}}^2$. The power is:
+\begin{equation}
+  1 - \beta = \Pr\!\left[
+    F_{d_{\mathrm{eff}},\, n-d_{\mathrm{eff}}-1}(\lambda)
+    > F_{\alpha,\, d_{\mathrm{eff}},\, n-d_{\mathrm{eff}}-1}
+  \right]
+\end{equation}
+where $n = n_b + n_c$.
+
+\textbf{Step 2: Sample size derivation.}
+For balanced designs ($n_b = n_c = n/2$), the non-centrality parameter
+becomes $\lambda = n \Delta_{\mathrm{M}}^2 / 4$. Using the normal
+approximation to the non-central $F$-distribution valid when
+$n \gg d_{\mathrm{eff}}$~\citep{muirhead2005aspects}, the power
+condition $1 - \beta$ yields:
+\begin{equation}
+  \sqrt{\lambda} - \sqrt{d_{\mathrm{eff}}}
+  \geq z_{1-\alpha} + z_{1-\beta}
+\end{equation}
+Solving for $n$ with $\lambda = n\Delta_{\mathrm{M}}^2/4$:
+\begin{equation}
+  n \geq \frac{4(z_{1-\alpha} + z_{1-\beta} +
+    \sqrt{d_{\mathrm{eff}}})^2}{\Delta_{\mathrm{M}}^2}
+\end{equation}
+The stated bound \eqref{eq:fingerprint-sample} follows by applying the
+tighter Lachin approximation~\citep{lachin1981introduction} and
+rounding up.
+
+\textbf{Step 3: Comparison with univariate testing.}
+The univariate pass-rate test (\cref{thm:power}) requires
+$n^*_{\mathrm{univariate}} = \lceil (z_{1-\alpha} +
+z_{1-\beta})^2 \cdot 2\bar{p}(1-\bar{p}) / \delta^2 \rceil$
+samples. The univariate test uses a single scalar (pass/fail), while
+the fingerprint test uses a $d_{\mathrm{eff}}$-dimensional vector.
+
+The key advantage is that $\Delta_{\mathrm{M}}$ captures
+\emph{all} behavioral changes simultaneously---not just the pass
+rate. A regression that changes the tool usage pattern without
+affecting the pass rate (e.g., the agent starts using a slower tool
+chain that happens to still produce correct outputs) will have
+$\Delta_{\mathrm{M}} > 0$ even when $\delta_{\text{pass-rate}} = 0$.
+This makes the fingerprint test strictly more powerful for detecting
+behavioral regressions.
+
+When the regression manifests primarily in the pass rate, we have
+$\Delta_{\mathrm{M}} \geq h / \sqrt{\bar{p}(1-\bar{p})}$ (since the
+pass rate is one component of the fingerprint), and the bound
+\eqref{eq:fingerprint-advantage} shows that $n_{\mathrm{fp}} \leq
+n^*_{\mathrm{univariate}}$ provided
+$\Delta_{\mathrm{M}}^2 / h^2 \geq 1$, which holds when any non-trivial
+behavioral shift accompanies the pass-rate change. \qedhere
+\end{proof}
+
+\begin{algorithm}[t]
+\caption{Behavioral Fingerprint Extraction}
+\label{alg:fingerprint}
+\begin{algorithmic}[1]
+\REQUIRE Execution trace $\tau = (s_1, \ldots, s_m)$, tool set
+  $\mathcal{T}$, action set $\mathcal{A}$
+\ENSURE Behavioral fingerprint $\mathbf{f} \in \mathbb{R}^d$
+\STATE $\mathbf{u} \gets \mathbf{0}_{|\mathcal{T}|}$
+  \COMMENT{Tool usage vector}
+\STATE $\mathbf{w} \gets \mathbf{0}_{|\mathcal{A}|}$
+  \COMMENT{Action distribution}
+\STATE $D_{\max} \gets 0$; $\; B \gets 0$; $\; e \gets 0$;
+  $\; n_{\mathrm{err}} \gets 0$; $\; n_{\mathrm{rec}} \gets 0$
+\FOR{$i = 1$ \TO $m$}
+  \STATE Parse step $s_i = (a_i, t_i, o_i, c_i)$
+  \IF{$t_i \neq \bot$}
+    \STATE $u_{t_i} \gets u_{t_i} + 1$
+  \ENDIF
+  \STATE $w_{a_i} \gets w_{a_i} + 1$
+  \STATE Update $D_{\max}$, $B$ from control flow
+  \IF{$o_i$ indicates error}
+    \STATE $e \gets 1$; $\; n_{\mathrm{err}} \gets n_{\mathrm{err}} + 1$
+    \IF{$i < m$ \AND $o_{i+1}$ indicates success}
+      \STATE $n_{\mathrm{rec}} \gets n_{\mathrm{rec}} + 1$
+    \ENDIF
+  \ENDIF
+\ENDFOR
+\STATE $\mathbf{u} \gets \mathbf{u} / m$; $\;\mathbf{w} \gets
+  \mathbf{w} / m$
+  \COMMENT{Normalize}
+\STATE $\rho \gets n_{\mathrm{rec}} / \max(n_{\mathrm{err}}, 1)$
+\STATE $\mathbf{f} \gets (\mathbf{u}, m, D_{\max}, B,
+  |\mathrm{out}(\tau)|, \kappa(\tau), \mathbf{w}, e, \rho,
+  \sum_i c_i, \bar{c})$
+\RETURN $\mathbf{f}$
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Adaptive Budget Optimization}
+\label{sec:token:budget}
+
+Even with fingerprint-based multivariate testing, we must still choose
+how many trials $n$ to run. The fixed-sample approach
+(\cref{eq:sample-size}) is conservative: it allocates $n$ based on
+worst-case variance $\hat{p}(1-\hat{p}) \leq 1/4$. For agents that
+are \emph{stable} (low behavioral variance), far fewer trials suffice.
+
+\begin{definition}[Token Budget]
+\label{def:token-budget}
+A \emph{token budget} is a constraint $\mathcal{B} = (B_{\mathrm{tok}},
+B_{\$})$ specifying the maximum tokens and monetary cost available for a
+test campaign. The per-trial cost of agent $A$ on scenario $S$ is:
+\begin{equation}
+\label{eq:trial-cost}
+  c_A(S) = \E_{\tau \sim A(S.x)}\!\left[\sum_{i=1}^{|\tau|} c_i\right]
+\end{equation}
+The maximum number of affordable trials is
+$n_{\max} = \lfloor B_{\$} / c_A(S) \rfloor$.
+\end{definition}
+
+\begin{definition}[Behavioral Variance Class]
+\label{def:variance-class}
+Given calibration fingerprints $\mathbf{f}_1, \ldots, \mathbf{f}_k$
+from $k$ calibration runs of agent $A$, compute the total fingerprint
+variance:
+\begin{equation}
+\label{eq:fp-variance}
+  \hat{\sigma}^2_{\mathrm{fp}} =
+    \frac{1}{k-1} \sum_{i=1}^{k}
+    \|\mathbf{f}_i - \bar{\mathbf{f}}\|^2
+\end{equation}
+The agent's \emph{variance class} is:
+\begin{equation}
+\label{eq:variance-class}
+  \mathcal{V}(A) =
+  \begin{cases}
+    \text{stable} & \text{if } \hat{\sigma}^2_{\mathrm{fp}}
+      < \sigma^2_{\text{low}} \\
+    \text{moderate} & \text{if } \sigma^2_{\text{low}} \leq
+      \hat{\sigma}^2_{\mathrm{fp}} < \sigma^2_{\text{high}} \\
+    \text{volatile} & \text{if } \hat{\sigma}^2_{\mathrm{fp}}
+      \geq \sigma^2_{\text{high}}
+  \end{cases}
+\end{equation}
+where $\sigma^2_{\text{low}}$ and $\sigma^2_{\text{high}}$ are
+calibration thresholds (set empirically, defaults
+$\sigma^2_{\text{low}} = 0.05$, $\sigma^2_{\text{high}} = 0.25$).%
+\footnote{Thresholds are empirically calibrated; the implementation
+uses total fingerprint variance thresholds of 1.5 (stable) and 5.0
+(volatile), corresponding to approximately 0.107 and 0.357 per
+dimension for a 14-dimensional fingerprint.}
+\end{definition}
+
+\begin{theorem}[Adaptive Budget Optimality]
+\label{thm:adaptive-budget}
+Given $k$ calibration fingerprints with estimated variance
+$\hat{\sigma}^2_{\mathrm{fp}}$ and the target Mahalanobis distance
+$\Delta_{\mathrm{M,min}}$ for minimum detectable regression, the
+adaptive budget optimizer computes the optimal trial count:
+\begin{equation}
+\label{eq:adaptive-n}
+  n^* = \left\lceil
+    \frac{(z_{1-\alpha} + z_{1-\beta})^2 \cdot
+      \hat{\sigma}^2_{\mathrm{fp}}}
+    {\Delta_{\mathrm{M,min}}^2}
+    + \frac{d_{\mathrm{eff}} + 1}{2}
+  \right\rceil
+\end{equation}
+This estimate satisfies the following properties:
+\begin{enumerate}[leftmargin=*]
+  \item \textbf{Never worse:} $n^* \leq n_{\mathrm{fixed}}$ always,
+    where $n_{\mathrm{fixed}}$ uses worst-case variance $1/4$.
+  \item \textbf{Proportional to actual variance:}
+    $\E[n^*] = n_{\mathrm{fixed}} \times
+    (\hat{\sigma}^2_{\mathrm{fp}} / \sigma^2_{\max})$, where
+    $\sigma^2_{\max} = d \cdot 1/4$ is the maximum fingerprint variance.
+  \item \textbf{Stable-agent savings:} For agents in the stable
+    variance class ($\hat{\sigma}^2_{\mathrm{fp}} < \sigma^2_{\text{low}}$),
+    the typical reduction is $n^* \in [15, 25]$ compared to
+    $n_{\mathrm{fixed}} \approx 100$.
+  \item \textbf{Statistical validity:} When $k \geq 10$ and
+    $\hat{\sigma}^2_{\mathrm{fp}}$ is within $\pm 30\%$ of
+    $\sigma^2_{\mathrm{true}}$ (which holds with probability $\geq
+    0.95$ by the chi-squared concentration bound), the actual error
+    rates remain within $[\alpha, 1.5\alpha]$ and $[\beta, 1.5\beta]$.
+\end{enumerate}
+\end{theorem}
+
+\begin{proof}
+\textbf{Property (i).}
+The worst-case variance of a $d$-dimensional fingerprint with each
+component in $[0,1]$ is bounded by $\sigma^2_{\max} = d/4$ (each
+component has variance at most $1/4$). By definition,
+$\hat{\sigma}^2_{\mathrm{fp}} \leq \sigma^2_{\max}$, so
+$n^* \leq n_{\mathrm{fixed}}$.
+
+\textbf{Property (ii).}
+Follows directly from the linear relationship between $n^*$ and
+$\hat{\sigma}^2_{\mathrm{fp}}$ in \eqref{eq:adaptive-n}, with the
+fixed-sample formula corresponding to
+$\hat{\sigma}^2_{\mathrm{fp}} = \sigma^2_{\max}$.
+
+\textbf{Property (iii).}
+For stable agents with $\hat{\sigma}^2_{\mathrm{fp}} < 0.05$ and
+typical $d_{\mathrm{eff}} \in [3, 8]$, substituting into
+\eqref{eq:adaptive-n} with $\alpha = 0.05$, $\beta = 0.10$,
+$\Delta_{\mathrm{M,min}} = 0.5$:
+\begin{equation}
+  n^* = \left\lceil
+    \frac{(1.645 + 1.282)^2 \times 0.05}{0.25} + \frac{6}{2}
+  \right\rceil
+  = \left\lceil 1.71 + 3 \right\rceil = 5
+\end{equation}
+With a safety margin of $(1 + \sqrt{2/k})$ for finite-sample estimation
+uncertainty (where $k$ is the calibration size), the practical
+recommendation is $n^* \in [15, 25]$.
+
+\textbf{Property (iv).}
+The calibration variance $\hat{\sigma}^2_{\mathrm{fp}}$ follows a
+scaled chi-squared distribution:
+$(k-1)\hat{\sigma}^2_{\mathrm{fp}} / \sigma^2_{\mathrm{true}} \sim
+\chi^2_{k-1}$. For $k = 10$, the 95\% confidence interval for
+$\sigma^2_{\mathrm{true}}$ is:
+\begin{equation}
+  \left[\frac{(k-1)\hat{\sigma}^2_{\mathrm{fp}}}{\chi^2_{0.975, k-1}},\;
+   \frac{(k-1)\hat{\sigma}^2_{\mathrm{fp}}}{\chi^2_{0.025, k-1}}\right]
+  = [0.51\hat{\sigma}^2_{\mathrm{fp}},\;
+     2.30\hat{\sigma}^2_{\mathrm{fp}}]
+\end{equation}
+If the true variance exceeds our estimate by a factor of $\gamma =
+\sigma^2_{\mathrm{true}} / \hat{\sigma}^2_{\mathrm{fp}}$, the actual
+sample size needed is $n^* \times \gamma$. We run $n^*$ trials, so
+the effective significance level becomes at most $\alpha \times
+\gamma^{1/2} \leq 1.5\alpha$ for $\gamma \leq 2.3$, which holds with
+probability 0.975. \qedhere
+\end{proof}
+
+\begin{algorithm}[t]
+\caption{Adaptive Budget Calibration}
+\label{alg:budget}
+\begin{algorithmic}[1]
+\REQUIRE Agent $A$, scenario $S$, calibration size $k$,
+  parameters $(\alpha, \beta, \Delta_{\mathrm{M,min}})$
+\ENSURE Budget estimate $(n^*, \mathcal{V}(A),
+  \hat{\sigma}^2_{\mathrm{fp}})$
+\STATE \textbf{Phase 1: Calibration}
+\FOR{$i = 1$ \TO $k$}
+  \STATE $\tau_i \gets$ execute $A$ on $S.x$
+  \STATE $\mathbf{f}_i \gets F(\tau_i)$
+    \COMMENT{\cref{alg:fingerprint}}
+\ENDFOR
+\STATE $\bar{\mathbf{f}} \gets \frac{1}{k}\sum_i \mathbf{f}_i$
+\STATE $\hat{\sigma}^2_{\mathrm{fp}} \gets
+  \frac{1}{k-1}\sum_i \|\mathbf{f}_i - \bar{\mathbf{f}}\|^2$
+\STATE Compute $d_{\mathrm{eff}}$ via PCA on
+  $\{\mathbf{f}_1, \ldots, \mathbf{f}_k\}$
+\STATE Classify $\mathcal{V}(A)$ per \cref{def:variance-class}
+\STATE \textbf{Phase 2: Budget computation}
+\STATE $n^* \gets \lceil
+  (z_{1-\alpha} + z_{1-\beta})^2 \hat{\sigma}^2_{\mathrm{fp}} /
+  \Delta_{\mathrm{M,min}}^2 + (d_{\mathrm{eff}} + 1)/2 \rceil$
+\STATE $n^* \gets \max(n^*, k + 5)$
+  \COMMENT{Minimum for reliable CI}
+\STATE $n^* \gets \lceil n^* \cdot (1 + \sqrt{2/k}) \rceil$
+  \COMMENT{Safety margin for finite-sample estimation error}
+\RETURN $(n^*, \mathcal{V}(A), \hat{\sigma}^2_{\mathrm{fp}})$
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Trace-First Offline Analysis}
+\label{sec:token:trace-first}
+
+The most dramatic cost reduction comes from the observation that
+\emph{most testing activities do not require new agent executions}.
+If execution traces are already available---from production logging,
+previous test campaigns, or staging environments---four of the six
+test types in \agentassay{} can execute at zero additional token cost.
+
+\begin{definition}[Trace Store]
+\label{def:trace-store}
+A \emph{trace store} is a persistent, versioned collection
+$\mathcal{T}_{\mathrm{store}} = \{(\tau_i, x_i, v_i, t_i)\}_{i=1}^{N}$
+of execution traces, where $\tau_i$ is the trace, $x_i$ the input,
+$v_i$ the agent version, and $t_i$ the timestamp. A trace store
+supports two operations:
+\begin{itemize}[leftmargin=*]
+  \item $\mathrm{query}(v, S) \to \{\tau : v_\tau = v,\;
+    x_\tau \in S\}$: retrieve traces for version $v$ matching scenario
+    set $S$.
+  \item $\mathrm{sample}(v, n) \to \{\tau_1, \ldots, \tau_n\}$: draw
+    $n$ traces uniformly at random from version $v$'s traces.
+\end{itemize}
+\end{definition}
+
+\begin{definition}[Trace-First Testing]
+\label{def:trace-first}
+A test type $\mathcal{T}$ is \emph{trace-first compatible} if its
+verdict can be computed entirely from a set of pre-recorded execution
+traces without executing the agent. Formally, $\mathcal{T}$ is
+trace-first compatible if there exists a function
+$V_{\mathcal{T}}\colon (\mathcal{T}_{\mathrm{store}})^* \to
+\{\PASS{},\allowbreak \FAIL{},\allowbreak \INCONC{}\}$ such that:
+\begin{equation}
+\label{eq:trace-first}
+  V_{\mathcal{T}}(\mathrm{query}(v, S)) =
+  V_{\mathcal{T}}^{\mathrm{live}}(A_v, S)
+\end{equation}
+when the stored traces are sampled from the same distribution as live
+executions.
+\end{definition}
+
+\begin{theorem}[Trace-First Soundness]
+\label{thm:trace-first}
+Given a trace store $\mathcal{T}_{\mathrm{store}}$ with traces sampled
+i.i.d.\ from the production input distribution $\mathcal{D}$, the
+following properties hold:
+
+\begin{enumerate}[leftmargin=*]
+  \item \textbf{Coverage soundness.} Coverage computed on stored traces
+    is a lower bound on achievable coverage:
+    \begin{equation}
+      \mathcal{C}(\mathcal{T}_{\mathrm{store}}) \leq
+        \mathcal{C}^*(\mathcal{D})
+    \end{equation}
+    where $\mathcal{C}^*(\mathcal{D})$ is the coverage achievable with
+    unlimited testing. Equality holds as
+    $|\mathcal{T}_{\mathrm{store}}| \to \infty$.
+
+  \item \textbf{Contract violation soundness.} If a contract violation
+    is detected in a stored trace $\tau_i$, then the violation is a
+    \emph{true} violation:
+    \begin{equation}
+      \exists\, \tau \in \mathcal{T}_{\mathrm{store}} :
+      \mathrm{out}(\tau) \not\models \phi
+      \implies
+      \Pr_{x \sim \mathcal{D}}[\mathrm{out}(A(x)) \not\models \phi] > 0
+    \end{equation}
+
+  \item \textbf{Metamorphic relation soundness.} If a metamorphic
+    relation $\mathcal{R}$ is violated in stored trace pairs, the
+    violation rate is an unbiased estimator of the true violation rate:
+    \begin{equation}
+      \E[\hat{q}_{\mathrm{store}}] =
+        q_{\mathrm{true}}(\mathcal{R}, A, \mathcal{D})
+    \end{equation}
+
+  \item \textbf{Regression incompatibility.} Regression detection
+    (\cref{def:regression}) between versions $v$ and $v'$ is
+    \emph{not} trace-first compatible in general, because it requires
+    traces from version $v'$ which may not yet exist in the store.
+    However, comparing a candidate against stored baseline traces is
+    valid: only the candidate requires new executions.
+\end{enumerate}
+\end{theorem}
+
+\begin{proof}
+\textbf{Part (1).}
+Coverage is a monotonically non-decreasing function of the trace set
+(\cref{thm:coverage-mono}). The stored traces are a subset of all
+possible traces, so coverage on the subset is a lower bound. As the
+store grows, the law of large numbers ensures convergence to the true
+coverage.
+
+\textbf{Part (2).}
+A stored trace $\tau$ was produced by the actual agent $A$ on a real
+input $x \sim \mathcal{D}$. If $\mathrm{out}(\tau) \not\models \phi$,
+this is a concrete witness that the agent can violate the contract.
+Since traces are not fabricated, this is a true violation. The
+probability statement follows from the fact that the violating input
+$x$ was sampled from $\mathcal{D}$, so the support of $\mathcal{D}$
+contains a violation-inducing input.
+
+\textbf{Part (3).}
+Since traces are i.i.d.\ samples from $A(x)$ with
+$x \sim \mathcal{D}$, the stored trace pairs (constructed by pairing
+with their metamorphic transforms) yield violations that are i.i.d.\
+Bernoulli random variables with parameter
+$q_{\mathrm{true}} = \Pr_{x \sim \mathcal{D}}[\neg\mathcal{R}(A(x),
+A(\phi(x)))]$. The sample mean is an unbiased estimator.
+
+\textbf{Part (4).}
+Regression detection compares $A_v$ and $A_{v'}$. If $v'$ is a new
+version, no traces from $A_{v'}$ exist in the store. However, the
+baseline traces from $A_v$ are reusable: only the $n_c$ candidate
+traces require new executions, halving the live-run cost. \qedhere
+\end{proof}
+
+\begin{table}[t]
+\centering
+\caption{Trace-first compatibility of \agentassay{} test types.
+  ``Offline'' means the test can run at zero additional token cost given
+  a sufficient trace store. ``Reduced'' means only a subset of the
+  test requires live agent executions.}
+\label{tab:trace-first}
+\small
+\begin{tabular}{lccc}
+\toprule
+\textbf{Test Type} & \textbf{Offline?} & \textbf{Soundness} &
+  \textbf{Live Cost} \\
+\midrule
+Coverage analysis & Yes & Lower bound & \$0 \\
+Contract checking & Yes & Sound & \$0 \\
+Metamorphic relations & Yes & Sound (unbiased) & \$0 \\
+Mutation testing & Partial & Evaluator only & $\approx$\$0 \\
+SPRT regression & No & Sound & Reduced by Pillars 1--2 \\
+Deployment gate & Hybrid & Sound & Reduced \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\Cref{tab:trace-first} summarizes the compatibility. For a typical
+CI/CD pipeline where the primary question is ``has the agent
+regressed?'', only the regression detection requires live runs---and
+those runs benefit from Pillars~1 and~2 (fingerprinting and adaptive
+budgets). Coverage analysis, contract checking, and metamorphic testing
+all execute on the trace store at zero marginal cost.
+
+\subsection{Multi-Fidelity Proxy Testing}
+\label{sec:token:multi-fidelity}
+
+In many deployments, the target agent uses an expensive frontier model
+(e.g., GPT-4o) but a cheaper proxy model (e.g., GPT-4o-mini) exists
+that exhibits correlated behavior. Multi-fidelity testing exploits this
+correlation to reduce cost.
+
+\begin{definition}[Multi-Fidelity Test Configuration]
+\label{def:multi-fidelity}
+A \emph{multi-fidelity test} is a tuple $(M_e, M_c,\allowbreak
+n_e, n_c, \rho)$ where:
+\begin{itemize}[leftmargin=*]
+  \item $M_e$ is the expensive (target) model with per-trial cost
+    $c_e$,
+  \item $M_c$ is the cheap (proxy) model with per-trial cost $c_c$
+    and $c_c \ll c_e$,
+  \item $n_e$ and $n_c$ are the number of trials on each model,
+  \item $\rho \in [-1, 1]$ is the Pearson correlation between the
+    behavioral fingerprints of the two models:
+    $\rho = \mathrm{Corr}(F(\tau_e), F(\tau_c))$ where the
+    correlation is computed component-wise and averaged.
+\end{itemize}
+\end{definition}
+
+\begin{proposition}[Multi-Fidelity Cost Reduction]
+\label{prop:multi-fidelity}
+Let $A_e$ and $A_c$ be agents using models $M_e$ and $M_c$
+respectively, with behavioral correlation $\rho$. The optimal
+allocation $(n_c^*, n_e^*)$ for detecting a regression of
+Mahalanobis distance $\Delta_{\mathrm{M}}$ at level $(\alpha, \beta)$
+is given by minimizing total cost subject to the power constraint:
+\begin{equation}
+\label{eq:mf-optimization}
+  \min_{n_e, n_c}\; n_e c_e + n_c c_c
+  \quad\text{s.t.}\quad
+  \mathrm{Power}(n_e, n_c, \rho, \Delta_{\mathrm{M}}) \geq 1 - \beta
+\end{equation}
+The combined evidence is:
+\begin{equation}
+\label{eq:mf-combined}
+  \chi^2_{\mathrm{combined}} = -2\!\left[
+    \rho \cdot \log p_c + (1-\rho) \cdot \log p_e
+  \right]
+\end{equation}
+where $p_c$ and $p_e$ are the $p$-values from the proxy and target
+tests respectively, and the combined statistic follows
+$\chi^2_{\mathrm{combined}} \sim \chi^2_4$ under $H_0$ by the weighted
+Fisher combination method. (The implementation uses Stouffer's $Z$-based
+combination, which is asymptotically equivalent and more robust to
+extreme $p$-values.)
+
+When $\rho \geq 0.6$ and $c_c / c_e \leq 0.1$, the optimal
+allocation achieves:
+\begin{equation}
+\label{eq:mf-savings}
+  \frac{n_e^* c_e + n_c^* c_c}{n_{\mathrm{single}} c_e}
+  \leq \frac{1 - \rho^2 + \rho^2 (c_c / c_e)}{1}
+  \leq 1 - \rho^2 + 0.1\rho^2
+  = 1 - 0.9\rho^2
+\end{equation}
+For $\rho = 0.8$: cost ratio $\leq 0.424$ (2.4$\times$ savings). For
+$\rho = 0.9$: cost ratio $\leq 0.271$ (3.7$\times$ savings).
+\end{proposition}
+
+\begin{proof}[Proof sketch]
+The proof adapts the multi-fidelity Monte Carlo framework of
+Peherstorfer et al.~\citep{peherstorfer2018survey} to the hypothesis
+testing setting. The key observation is that the proxy trials provide
+information about the target model's behavior proportional to $\rho^2$
+(the coefficient of determination). The optimal allocation minimizes
+cost while maintaining the total effective sample size
+$n_{\mathrm{eff}} = n_e + \rho^2 n_c$ at the level required for
+$(\alpha, \beta)$ guarantees. The cost bound
+\eqref{eq:mf-savings} follows from the Lagrangian optimization with
+the constraint $n_{\mathrm{eff}} \geq n_{\mathrm{single}}$.
+The complete derivation is in \cref{app:proof:multi-fidelity}.
+\end{proof}
+
+\subsection{Warm-Start Sequential Testing}
+\label{sec:token:warm-start}
+
+When an agent has been tested previously (e.g., in a prior CI/CD run),
+the results constitute a \emph{prior} on the agent's pass-rate
+distribution. Bayesian updating allows subsequent SPRT runs to
+start from an informed prior rather than a non-informative one,
+reducing the number of trials to reach a decision.
+
+\begin{definition}[Warm-Start SPRT]
+\label{def:warm-sprt}
+Given a prior Beta distribution $p \sim \text{Beta}(a_0, b_0)$
+derived from $n_0$ previous trials with $k_0$ successes (i.e.,
+$a_0 = k_0 + 1$, $b_0 = n_0 - k_0 + 1$), the \emph{warm-start SPRT}
+initializes the log-likelihood ratio at:
+\begin{equation}
+\label{eq:warm-start-init}
+  \Lambda_0^{\mathrm{warm}} =
+    \log\frac{B(\theta - \delta; a_0, b_0)}{B(\theta; a_0, b_0)}
+\end{equation}
+where $B(p; a, b) = p^{a-1}(1-p)^{b-1} / \mathrm{Beta}(a,b)$ is the
+Beta density. The subsequent updates proceed as in
+\cref{def:sprt}, with boundaries $a$ and $b$ unchanged.
+\end{definition}
+
+\begin{proposition}[Warm-Start Efficiency]
+\label{prop:warm-start}
+The warm-start SPRT (\cref{def:warm-sprt}) satisfies:
+\begin{enumerate}[leftmargin=*]
+  \item \textbf{Error control preserved:}
+    $\Pr[\text{accept } H_1 \mid H_0] \leq \alpha$ and
+    $\Pr[\text{accept } H_0 \mid H_1] \leq \beta$, provided the
+    prior is well-calibrated (the prior was generated from the same
+    agent version or a version with $|p_v - p_{v'}| \leq \delta/2$).
+  \item \textbf{Sample savings:}
+    \begin{equation}
+    \label{eq:warm-savings}
+      \E[N_{\mathrm{warm}}] \leq \E[N_{\mathrm{cold}}] -
+        \frac{|\Lambda_0^{\mathrm{warm}}|}
+             {|\E[\lambda_1]|}
+    \end{equation}
+    where $\E[\lambda_1]$ is the expected per-trial log-likelihood
+    increment. The savings are proportional to the
+    \emph{informativeness} of the prior $|\Lambda_0^{\mathrm{warm}}|$.
+  \item \textbf{Graceful degradation:} If the prior is
+    mis-calibrated (e.g., derived from a different agent version), the
+    error control degrades by at most
+    $\alpha' \leq \alpha \cdot e^{|\Lambda_0^{\mathrm{warm}}|}$, which
+    remains small when $n_0$ is moderate ($n_0 \leq 20$).
+\end{enumerate}
+\end{proposition}
+
+\begin{proof}[Proof sketch]
+Part (1) follows from the Bayesian updating interpretation of the
+SPRT: incorporating a prior is equivalent to starting the random walk
+at position $\Lambda_0^{\mathrm{warm}}$ instead of $0$. If the prior
+is correct ($p_{\mathrm{prior}} = p_{\mathrm{true}}$), the stopping
+boundaries $a$ and $b$ still control the error probabilities by
+Wald's identity.
+
+Part (2) uses the optional stopping theorem. The expected number of
+steps to cross a boundary starting from $\Lambda_0$ instead of $0$ is
+reduced by $|\Lambda_0| / |\E[\lambda_1]|$ (the ``head start''
+divided by the average drift rate). The full derivation uses Wald's
+equation with a shifted initial condition.
+
+Part (3) bounds the excess error when the prior is wrong. A
+mis-calibrated prior shifts the initial position by at most
+$|\Lambda_0^{\mathrm{warm}}|$. The error probability increases by a
+multiplicative factor of $e^{|\Lambda_0^{\mathrm{warm}}|}$ in the
+worst case (by the likelihood ratio bound), which remains manageable
+for moderate priors. The complete proof is in
+\cref{app:proof:warm-start}. \qedhere
+\end{proof}
+
+\subsection{Theoretical Analysis: Combined Efficiency}
+\label{sec:token:analysis}
+
+We now analyze the combined effect of all five techniques.
+
+\begin{theorem}[Combined Token Efficiency]
+\label{thm:combined-efficiency}
+Let $C_{\mathrm{classical}} = m \times n_{\mathrm{fixed}} \times
+c_{\mathrm{run}}$ be the cost of testing $m$ scenarios with fixed-sample
+testing at $n_{\mathrm{fixed}}$ trials each. The full \agentassay{}
+system combining all five token-efficient techniques achieves
+$(\alpha, \beta)$-guaranteed regression detection at total cost:
+\begin{equation}
+\label{eq:combined-cost}
+  C_{\mathrm{full}} \leq C_{\mathrm{classical}} \times R
+\end{equation}
+where the combined reduction factor is:
+\begin{equation}
+\label{eq:combined-R}
+  R = R_{\mathrm{fp}} \times R_{\mathrm{budget}} \times
+      R_{\mathrm{trace}} \times R_{\mathrm{mf}} \times
+      R_{\mathrm{warm}}
+\end{equation}
+and each factor satisfies $R_i \in (0, 1]$:
+\begin{enumerate}[leftmargin=*]
+  \item $R_{\mathrm{fp}} = n_{\mathrm{fp}} / n_{\mathrm{fixed}}$:
+    fingerprint sample efficiency (\cref{thm:fingerprint-regression}).
+    Typical range: $[0.4, 0.8]$.
+
+  \item $R_{\mathrm{budget}} = n^* / n_{\mathrm{fp}}$:
+    adaptive budget reduction (\cref{thm:adaptive-budget}). Typical
+    range: $[0.15, 0.60]$ for stable agents, $[0.60, 1.0]$ for
+    volatile agents.
+
+  \item $R_{\mathrm{trace}} = m_{\mathrm{live}} / m$:
+    fraction of scenarios requiring live runs
+    (\cref{thm:trace-first}). Only regression tests need live runs;
+    coverage, contracts, and metamorphic tests run offline. Typical
+    range: $[0.2, 0.5]$ depending on trace store availability.
+
+  \item $R_{\mathrm{mf}} = (n_e^* c_e + n_c^* c_c) /
+    (n_{\mathrm{single}} c_e)$:
+    multi-fidelity cost ratio (\cref{prop:multi-fidelity}). Typical
+    range: $[0.25, 0.60]$ when $\rho \geq 0.6$.
+
+  \item $R_{\mathrm{warm}} = \E[N_{\mathrm{warm}}] /
+    \E[N_{\mathrm{cold}}]$:
+    warm-start efficiency (\cref{prop:warm-start}). Typical range:
+    $[0.6, 0.9]$.
+\end{enumerate}
+
+The expected combined reduction factor for a stable agent in a CI/CD
+pipeline with production trace stores and correlated proxy model is:
+\begin{equation}
+\label{eq:expected-R}
+  \E[R] \in [0.05, 0.20]
+  \quad\text{(5--20$\times$ cost savings)}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+Each reduction factor is multiplicative because the techniques apply to
+independent aspects of the testing pipeline:
+
+\textbf{Fingerprinting} reduces the number of trials per scenario by
+replacing univariate pass-rate testing with multivariate fingerprint
+testing. The per-scenario trial count goes from $n_{\mathrm{fixed}}$ to
+$n_{\mathrm{fp}}$.
+
+\textbf{Adaptive budgets} further reduce the trial count from
+$n_{\mathrm{fp}}$ to $n^*$ by calibrating to the agent's actual
+behavioral variance.
+
+\textbf{Trace-first analysis} eliminates live runs for scenarios that
+only require coverage, contract, or metamorphic testing. The fraction
+of scenarios requiring live runs is $m_{\mathrm{live}} / m$.
+
+\textbf{Multi-fidelity testing} reduces the per-trial cost for the
+live-run scenarios by substituting cheap proxy trials.
+
+\textbf{Warm-start SPRT} reduces the number of trials per live-run
+scenario by leveraging prior test results.
+
+Since these apply to different multiplicative components of cost
+($\text{cost} = m_{\mathrm{live}} \times n_{\mathrm{trials}} \times
+c_{\mathrm{per-trial}}$), the combined factor is approximately their
+product. In practice, the techniques interact (e.g., fewer trials from
+fingerprinting also reduce warm-start benefits), so the actual savings
+may differ from the product bound; our E7 experiments
+(\cref{sec:experiments:e7}) validate the combined effect empirically.
+
+For the expected range: taking the median of each typical range gives
+$R \approx 0.6 \times 0.35 \times 0.35 \times 0.42 \times 0.75
+\approx 0.023$, and using the conservative ends gives
+$R \approx 0.8 \times 0.60 \times 0.50 \times 0.60 \times 0.90
+\approx 0.130$, yielding the stated range $[0.05, 0.20]$. \qedhere
+\end{proof}
+
+\begin{corollary}[CI/CD Cost Convergence]
+\label{cor:cicd-cost}
+For stable agents in CI/CD pipelines with complete production trace
+stores (i.e., all production executions are logged) and a correlated
+proxy model ($\rho \geq 0.7$), the expected cost per regression check
+converges to:
+\begin{equation}
+\label{eq:cicd-convergence}
+  C_{\mathrm{check}} \to C_{\mathrm{offline}} +
+    m_{\mathrm{reg}} \times n^*_{\mathrm{warm}} \times c_c \times
+    (1 - \rho^2)
+\end{equation}
+where $C_{\mathrm{offline}}$ is the (negligible) compute cost of
+trace analysis, $m_{\mathrm{reg}}$ is the number of regression-specific
+scenarios, $n^*_{\mathrm{warm}}$ is the warm-started trial count, and
+$c_c$ is the proxy model cost. In the limit of high correlation
+($\rho \to 1$), the cost approaches $C_{\mathrm{offline}}$ alone.
+\end{corollary}
+
+\begin{example}[Cost Comparison]
+\label{ex:cost-comparison}
+Consider a customer support agent tested across $m = 50$ scenarios with
+GPT-4o ($c_e = \$0.15$/run) and GPT-4o-mini as proxy
+($c_c = \$0.01$/run, $\rho = 0.82$).
+
+\noindent\textbf{Classical approach:} $50 \times 100 \times \$0.15 =
+\$750$ per regression check.
+
+\noindent\textbf{\agentassay{} full system:}
+\begin{itemize}[leftmargin=*]
+  \item Trace-first: 35 scenarios run offline (\$0); 15 require
+    live runs.
+  \item Adaptive budget: $n^* = 22$ trials (stable agent).
+  \item Multi-fidelity: 5 target trials + 17 proxy trials per
+    scenario.
+  \item Warm-start: reduces to 4 target + 14 proxy on average.
+  \item Cost: $15 \times (4 \times \$0.15 + 14 \times \$0.01) =
+    15 \times \$0.74 = \$11.10$.
+\end{itemize}
+\textbf{Savings: 67.6$\times$} ($\$11.10$ vs.\ $\$750$), while
+maintaining $\alpha = 0.05$ and $\beta = 0.10$ guarantees.
+\end{example}

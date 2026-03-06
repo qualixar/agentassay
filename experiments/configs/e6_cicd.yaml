@@ -1,0 +1,31 @@
+experiment:
+  id: e6_cicd
+  name: "E6: End-to-End CI/CD Gate Evaluation"
+  description: "Deployment gate correctly allows good versions, blocks regressions"
+
+models:
+  - name: gpt-5.2-chat
+    subscription: 1
+  - name: claude-sonnet-4-6
+    subscription: 3
+  - name: Mistral-Large-3
+    subscription: 1
+  - name: Llama-4-Maverick-17B-128E-Instruct-FP8
+    subscription: 3
+  - name: Phi-4
+    subscription: 2
+
+scenarios:
+  - ecommerce
+  - customer_support
+  - code_generation
+
+parameters:
+  version_count: 20
+  trials_per_version: 50
+  gate_threshold: 0.80
+  gate_alpha: 0.05
+
+output:
+  results_dir: experiments/results/e6/
+  figures_dir: experiments/figures/e6/

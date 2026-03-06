@@ -1,0 +1,60 @@
+{
+  "grand_total_cost_usd": 6.747427,
+  "grand_total_calls": 5751,
+  "grand_total_tokens": 1169291,
+  "budget_usd": 175.0,
+  "budget_remaining_usd": 168.252573,
+  "budget_utilization_pct": 3.86,
+  "experiments": {
+    "default": {
+      "models": {
+        "Llama-4-Maverick-17B-128E-Instruct-FP8": {
+          "prompt_tokens": 38476,
+          "completion_tokens": 105359,
+          "total_tokens": 143835,
+          "total_calls": 1328,
+          "estimated_cost_usd": 0.0,
+          "last_updated": "2026-03-01T09:12:28.922327+00:00"
+        },
+        "Mistral-Large-3": {
+          "prompt_tokens": 21790,
+          "completion_tokens": 592745,
+          "total_tokens": 614535,
+          "total_calls": 1110,
+          "estimated_cost_usd": 3.60005,
+          "last_updated": "2026-03-01T09:12:26.899473+00:00"
+        },
+        "gpt-5.2-chat": {
+          "prompt_tokens": 26238,
+          "completion_tokens": 101279,
+          "total_tokens": 127517,
+          "total_calls": 1129,
+          "estimated_cost_usd": 1.078385,
+          "last_updated": "2026-03-01T09:12:27.759010+00:00"
+        },
+        "Phi-4": {
+          "prompt_tokens": 25964,
+          "completion_tokens": 98080,
+          "total_tokens": 124044,
+          "total_calls": 1068,
+          "estimated_cost_usd": 0.0,
+          "last_updated": "2026-03-01T09:12:19.532367+00:00"
+        },
+        "claude-sonnet-4-6": {
+          "prompt_tokens": 26784,
+          "completion_tokens": 132576,
+          "total_tokens": 159360,
+          "total_calls": 1116,
+          "estimated_cost_usd": 2.068992,
+          "last_updated": "2026-03-01T09:12:29.101544+00:00"
+        }
+      },
+      "total_cost_usd": 6.747427,
+      "total_calls": 5751,
+      "started_at": "2026-02-28T10:06:47.735419+00:00",
+      "last_updated": "2026-03-01T09:12:29.101544+00:00"
+    }
+  },
+  "started_at": "2026-02-28T10:06:46.146000+00:00",
+  "last_updated": "2026-03-01T09:12:32.743957+00:00"
+}
