@@ -47,7 +47,12 @@ Example:
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from enum import StrEnum
+try:
+    from enum import StrEnum
+except ImportError:
+    from enum import Enum
+    class StrEnum(str, Enum):  # Python 3.10 compat
+        pass
 from typing import Any
 
 from pydantic import BaseModel, Field, field_validator

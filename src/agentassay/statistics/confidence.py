@@ -45,7 +45,12 @@ References:
 from __future__ import annotations
 
 import math
-from enum import StrEnum
+try:
+    from enum import StrEnum
+except ImportError:
+    from enum import Enum
+    class StrEnum(str, Enum):  # Python 3.10 compat
+        pass
 from typing import Final
 
 from pydantic import BaseModel, model_validator

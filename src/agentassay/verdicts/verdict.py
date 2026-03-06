@@ -59,7 +59,12 @@ from __future__ import annotations
 
 import warnings
 from datetime import datetime, timezone
-from enum import StrEnum
+try:
+    from enum import StrEnum
+except ImportError:
+    from enum import Enum
+    class StrEnum(str, Enum):  # Python 3.10 compat
+        pass
 from typing import Any
 
 import numpy as np
