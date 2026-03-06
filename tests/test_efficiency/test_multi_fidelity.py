@@ -10,14 +10,9 @@ threshold enforcement, and budget splitting.
 
 from __future__ import annotations
 
-import numpy as np
-import pytest
-
-from agentassay.core.models import ExecutionTrace
 from agentassay.efficiency.multi_fidelity import MultiFidelityTester
 
-from .conftest import make_trace, make_traces, make_regressed_traces
-
+from .conftest import make_regressed_traces, make_traces
 
 # ===================================================================
 # MultiFidelityTester — correlation estimation

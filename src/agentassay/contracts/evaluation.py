@@ -45,9 +45,7 @@ class ContractViolation(BaseModel):
         min_length=1,
         description="Name of the specific constraint that was violated.",
     )
-    constraint_type: Literal[
-        "precondition", "postcondition", "invariant", "guardrail"
-    ] = Field(
+    constraint_type: Literal["precondition", "postcondition", "invariant", "guardrail"] = Field(
         description="Category of the violated constraint.",
     )
     violated_at_step: int | None = Field(
@@ -92,8 +90,7 @@ class ContractEvaluation(BaseModel):
     )
     passed: bool = Field(
         description=(
-            "True if NO hard violations were detected. Soft violations "
-            "alone do not cause failure."
+            "True if NO hard violations were detected. Soft violations alone do not cause failure."
         ),
     )
     violations: list[ContractViolation] = Field(

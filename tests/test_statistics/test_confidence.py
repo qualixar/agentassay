@@ -12,14 +12,12 @@ import pytest
 
 from agentassay.statistics.confidence import (
     ConfidenceInterval,
-    ConfidenceMethod,
     binomial_confidence_interval,
     clopper_pearson_interval,
     minimum_sample_size,
     normal_interval,
     wilson_interval,
 )
-
 
 # ===================================================================
 # Wilson interval (structured API)
@@ -133,11 +131,23 @@ class TestNormalInterval:
 class TestCIOrdering:
     """Test that lower <= point_estimate <= upper for all methods."""
 
-    @pytest.mark.parametrize("successes,n", [
-        (0, 10), (1, 10), (5, 10), (9, 10), (10, 10),
-        (0, 100), (50, 100), (100, 100), (1, 1),
-    ])
-    @pytest.mark.parametrize("method_fn", [wilson_interval, clopper_pearson_interval, normal_interval])
+    @pytest.mark.parametrize(
+        "successes,n",
+        [
+            (0, 10),
+            (1, 10),
+            (5, 10),
+            (9, 10),
+            (10, 10),
+            (0, 100),
+            (50, 100),
+            (100, 100),
+            (1, 1),
+        ],
+    )
+    @pytest.mark.parametrize(
+        "method_fn", [wilson_interval, clopper_pearson_interval, normal_interval]
+    )
     def test_ordering(self, successes, n, method_fn):
         ci = method_fn(successes, n)
         assert ci.lower <= ci.point_estimate + 1e-10

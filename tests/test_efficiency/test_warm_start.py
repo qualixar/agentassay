@@ -15,8 +15,7 @@ import pytest
 from agentassay.efficiency.warm_start import WarmStartSPRT
 from agentassay.statistics.sprt import SPRTRunner
 
-from .conftest import make_traces, make_regressed_traces
-
+from .conftest import make_regressed_traces, make_traces
 
 # ===================================================================
 # Helpers
@@ -68,8 +67,12 @@ class TestWarmStartSpeed:
 
         # Warm SPRT: has 10 historical passes as prior (moderate, not overwhelming)
         warm = WarmStartSPRT(
-            theta_0=p0, delta=delta, alpha=0.05, beta=0.20,
-            prior_successes=10, prior_trials=10,
+            theta_0=p0,
+            delta=delta,
+            alpha=0.05,
+            beta=0.20,
+            prior_successes=10,
+            prior_trials=10,
         )
 
         warm_trials = 0
@@ -101,8 +104,12 @@ class TestWarmStartCorrectness:
         new_data = make_traces(50, passed=True)
 
         warm = WarmStartSPRT(
-            theta_0=0.90, delta=0.30, alpha=0.05, beta=0.20,
-            prior_successes=10, prior_trials=10,
+            theta_0=0.90,
+            delta=0.30,
+            alpha=0.05,
+            beta=0.20,
+            prior_successes=10,
+            prior_trials=10,
         )
 
         decision = warm.decision  # may already be decided from prior
@@ -123,8 +130,12 @@ class TestWarmStartCorrectness:
         new_data = make_regressed_traces(50, pass_rate=0.3)
 
         warm = WarmStartSPRT(
-            theta_0=0.90, delta=0.40, alpha=0.05, beta=0.20,
-            prior_successes=0, prior_trials=0,  # cold start, but with failures
+            theta_0=0.90,
+            delta=0.40,
+            alpha=0.05,
+            beta=0.20,
+            prior_successes=0,
+            prior_trials=0,  # cold start, but with failures
         )
 
         decision = "continue"
@@ -158,8 +169,12 @@ class TestWarmStartDegenerate:
         cold_trials = _run_cold_sprt(p0, p0 - delta, sequence)
 
         warm = WarmStartSPRT(
-            theta_0=p0, delta=delta, alpha=0.05, beta=0.20,
-            prior_successes=0, prior_trials=0,
+            theta_0=p0,
+            delta=delta,
+            alpha=0.05,
+            beta=0.20,
+            prior_successes=0,
+            prior_trials=0,
         )
 
         warm_trials = 0
@@ -179,8 +194,12 @@ class TestWarmStartDegenerate:
         be sufficient to cross the boundary — or at most 1-2 new trials.
         """
         warm = WarmStartSPRT(
-            theta_0=0.90, delta=0.40, alpha=0.05, beta=0.20,
-            prior_successes=100, prior_trials=100,
+            theta_0=0.90,
+            delta=0.40,
+            alpha=0.05,
+            beta=0.20,
+            prior_successes=100,
+            prior_trials=100,
         )
 
         decision = warm.decision
@@ -211,8 +230,12 @@ class TestWarmStartSavings:
     def test_expected_savings(self):
         """Savings estimate is a reasonable percentage (between 0% and 100%)."""
         warm = WarmStartSPRT(
-            theta_0=0.90, delta=0.30, alpha=0.05, beta=0.20,
-            prior_successes=20, prior_trials=20,
+            theta_0=0.90,
+            delta=0.30,
+            alpha=0.05,
+            beta=0.20,
+            prior_successes=20,
+            prior_trials=20,
         )
 
         savings = warm.expected_savings()
@@ -223,8 +246,12 @@ class TestWarmStartSavings:
     def test_expected_savings_zero_with_no_prior(self):
         """With no prior, savings should be 0% (no advantage over cold start)."""
         warm = WarmStartSPRT(
-            theta_0=0.90, delta=0.30, alpha=0.05, beta=0.20,
-            prior_successes=0, prior_trials=0,
+            theta_0=0.90,
+            delta=0.30,
+            alpha=0.05,
+            beta=0.20,
+            prior_successes=0,
+            prior_trials=0,
         )
 
         savings = warm.expected_savings()

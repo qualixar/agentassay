@@ -12,7 +12,6 @@ import random
 import uuid
 from typing import Any
 
-import numpy as np
 import pytest
 
 from agentassay.core.models import (
@@ -20,7 +19,6 @@ from agentassay.core.models import (
     ExecutionTrace,
     StepTrace,
 )
-
 
 # ===================================================================
 # Trace factory helpers

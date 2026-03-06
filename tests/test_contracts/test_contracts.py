@@ -10,15 +10,12 @@ from __future__ import annotations
 
 import pytest
 
-from agentassay.contracts.loader import ContractLoadError, ContractLoader
+from agentassay.contracts.loader import ContractLoader, ContractLoadError
 from agentassay.contracts.oracle import (
     ContractEvaluation,
     ContractOracle,
-    ContractViolation,
 )
-
 from tests.conftest import make_contract_dict, make_trace
-
 
 # ===================================================================
 # ContractLoader
@@ -81,8 +78,18 @@ class TestContractLoader:
             "contract": {
                 "name": "test",
                 "constraints": [
-                    {"name": "same", "type": "invariant", "severity": "hard", "condition": "success"},
-                    {"name": "same", "type": "guardrail", "severity": "soft", "condition": "step_count <= 10"},
+                    {
+                        "name": "same",
+                        "type": "invariant",
+                        "severity": "hard",
+                        "condition": "success",
+                    },
+                    {
+                        "name": "same",
+                        "type": "guardrail",
+                        "severity": "soft",
+                        "condition": "step_count <= 10",
+                    },
                 ],
             }
         }

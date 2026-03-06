@@ -13,14 +13,11 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from agentassay.core.models import ExecutionTrace
 from agentassay.efficiency.budget import (
     AdaptiveBudgetOptimizer,
-    BudgetEstimate,
 )
 
-from .conftest import make_trace, make_traces, make_regressed_traces
-
+from .conftest import make_regressed_traces, make_traces
 
 # ===================================================================
 # AdaptiveBudgetOptimizer — calibration

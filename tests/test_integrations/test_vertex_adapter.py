@@ -23,22 +23,23 @@ from unittest.mock import MagicMock, PropertyMock, patch
 
 import pytest
 
+from agentassay.core.models import AgentConfig, ExecutionTrace
+from agentassay.integrations.base import FrameworkNotInstalledError
+
 # ---------------------------------------------------------------------------
 # We must be able to import the adapter WITHOUT google-cloud-aiplatform.
 # The module uses lazy imports only at run-time, so top-level import works.
 # ---------------------------------------------------------------------------
 from agentassay.integrations.vertex_adapter import (
+    _DEFAULT_PRICING,
     VertexAIAgentsAdapter,
     _check_vertex_installed,
-    _DEFAULT_PRICING,
 )
-from agentassay.integrations.base import FrameworkNotInstalledError
-from agentassay.core.models import ExecutionTrace, StepTrace, AgentConfig
-
 
 # ===================================================================
 # Helpers -- mock Vertex AI response objects
 # ===================================================================
+
 
 def _make_text_part(text: str) -> MagicMock:
     """Create a mock Part with a text attribute."""
@@ -50,9 +51,7 @@ def _make_text_part(text: str) -> MagicMock:
     return part
 
 
-def _make_function_call_part(
-    name: str, args: dict[str, Any] | None = None
-) -> MagicMock:
+def _make_function_call_part(name: str, args: dict[str, Any] | None = None) -> MagicMock:
     """Create a mock Part with a function_call attribute."""
     fc = MagicMock()
     fc.name = name
@@ -66,9 +65,7 @@ def _make_function_call_part(
     return part
 
 
-def _make_function_response_part(
-    name: str, response: dict[str, Any] | None = None
-) -> MagicMock:
+def _make_function_response_part(name: str, response: dict[str, Any] | None = None) -> MagicMock:
     """Create a mock Part with a function_response attribute."""
     fr = MagicMock()
     fr.name = name
@@ -141,21 +138,15 @@ def _make_response(
             # Try to extract text from parts
             text_parts = []
             for c in candidates:
-                for p in (getattr(getattr(c, "content", None), "parts", None) or []):
+                for p in getattr(getattr(c, "content", None), "parts", None) or []:
                     if getattr(p, "text", None):
                         text_parts.append(p.text)
             if text_parts:
-                type(response).text = PropertyMock(
-                    return_value="\n".join(text_parts)
-                )
+                type(response).text = PropertyMock(return_value="\n".join(text_parts))
             else:
-                type(response).text = PropertyMock(
-                    side_effect=ValueError("No text parts")
-                )
+                type(response).text = PropertyMock(side_effect=ValueError("No text parts"))
         else:
-            type(response).text = PropertyMock(
-                side_effect=ValueError("No candidates")
-            )
+            type(response).text = PropertyMock(side_effect=ValueError("No candidates"))
 
     return response
 
@@ -170,7 +161,7 @@ def _make_grounding_metadata(
 
     # Build grounding chunks
     chunks = []
-    for src in (sources or []):
+    for src in sources or []:
         chunk = MagicMock()
         web = MagicMock()
         web.uri = src.get("uri", "")
@@ -207,9 +198,7 @@ class TestVertexAdapterCreation:
     def test_basic_creation(self) -> None:
         """Adapter can be created with a mock model and explicit model name."""
         mock_model = MagicMock()
-        adapter = VertexAIAgentsAdapter(
-            mock_model, model="gemini-2.0-flash"
-        )
+        adapter = VertexAIAgentsAdapter(mock_model, model="gemini-2.0-flash")
         assert adapter.framework == "vertex"
         assert adapter.model == "gemini-2.0-flash"
         assert adapter.agent_name == "vertex-agent"
@@ -258,18 +247,14 @@ class TestVertexAdapterCreation:
         """Tools list is stored for later use in generate_content."""
         mock_model = MagicMock()
         mock_tools = [MagicMock(), MagicMock()]
-        adapter = VertexAIAgentsAdapter(
-            mock_model, model="gemini-2.0-flash", tools=mock_tools
-        )
+        adapter = VertexAIAgentsAdapter(mock_model, model="gemini-2.0-flash", tools=mock_tools)
         assert adapter._tools is mock_tools
         assert len(adapter._tools) == 2
 
     def test_repr(self) -> None:
         """Repr includes framework, model, and agent name."""
         mock_model = MagicMock()
-        adapter = VertexAIAgentsAdapter(
-            mock_model, model="gemini-2.0-flash"
-        )
+        adapter = VertexAIAgentsAdapter(mock_model, model="gemini-2.0-flash")
         r = repr(adapter)
         assert "VertexAIAgentsAdapter" in r
         assert "vertex" in r
@@ -278,9 +263,7 @@ class TestVertexAdapterCreation:
     def test_default_pricing_applied(self) -> None:
         """Default pricing is set when no custom pricing provided."""
         mock_model = MagicMock()
-        adapter = VertexAIAgentsAdapter(
-            mock_model, model="gemini-2.0-flash"
-        )
+        adapter = VertexAIAgentsAdapter(mock_model, model="gemini-2.0-flash")
         assert adapter._pricing["prompt_per_token"] == _DEFAULT_PRICING["prompt_per_token"]
         assert adapter._pricing["completion_per_token"] == _DEFAULT_PRICING["completion_per_token"]
 
@@ -357,9 +340,7 @@ class TestVertexAdapterRun:
 
     def test_function_call_response(self) -> None:
         """Function call part produces a tool_call step."""
-        fc_part = _make_function_call_part(
-            "get_weather", {"city": "Tokyo", "unit": "celsius"}
-        )
+        fc_part = _make_function_call_part("get_weather", {"city": "Tokyo", "unit": "celsius"})
         candidate = _make_candidate([fc_part])
         response = _make_response([candidate])
 
@@ -377,9 +358,7 @@ class TestVertexAdapterRun:
         text_part = _make_text_part("Let me check the weather.")
         fc_part = _make_function_call_part("get_weather", {"city": "NYC"})
         candidate = _make_candidate([text_part, fc_part])
-        response = _make_response(
-            [candidate], text="Let me check the weather."
-        )
+        response = _make_response([candidate], text="Let me check the weather.")
 
         trace = self._run_with_response(response)
 
@@ -418,9 +397,7 @@ class TestVertexAdapterRun:
             quality_score=0.92,
         )
         candidate = _make_candidate([text_part], grounding_metadata=grounding)
-        response = _make_response(
-            [candidate], text="According to sources..."
-        )
+        response = _make_response([candidate], text="According to sources...")
 
         trace = self._run_with_response(response)
 
@@ -487,9 +464,7 @@ class TestVertexAdapterRun:
         mock_model._model_name = None
         mock_model.model_name = None
 
-        adapter = VertexAIAgentsAdapter(
-            mock_model, model="gemini-2.0-flash"
-        )
+        adapter = VertexAIAgentsAdapter(mock_model, model="gemini-2.0-flash")
 
         with patch.dict(sys.modules, {"vertexai": _FAKE_VERTEXAI}):
             trace = adapter.run({"query": "test"})
@@ -503,9 +478,7 @@ class TestVertexAdapterRun:
     def test_framework_not_installed_propagates(self) -> None:
         """FrameworkNotInstalledError is not swallowed by error handler."""
         mock_model = MagicMock()
-        adapter = VertexAIAgentsAdapter(
-            mock_model, model="gemini-2.0-flash"
-        )
+        adapter = VertexAIAgentsAdapter(mock_model, model="gemini-2.0-flash")
 
         with patch.dict(sys.modules, {"vertexai": None}):
             with pytest.raises(FrameworkNotInstalledError):
@@ -530,9 +503,7 @@ class TestVertexAdapterRun:
         candidate = _make_candidate([text_part])
         response = _make_response([candidate], text="response")
 
-        trace = self._run_with_response(
-            response, input_data={"query": "test"}
-        )
+        trace = self._run_with_response(response, input_data={"query": "test"})
 
         assert trace.scenario_id == "default"
 
@@ -606,9 +577,7 @@ class TestVertexAdapterRun:
         mock_model.model_name = None
 
         mock_tools = [MagicMock(name="tool1")]
-        adapter = VertexAIAgentsAdapter(
-            mock_model, model="gemini-2.0-flash", tools=mock_tools
-        )
+        adapter = VertexAIAgentsAdapter(mock_model, model="gemini-2.0-flash", tools=mock_tools)
 
         with patch.dict(sys.modules, {"vertexai": _FAKE_VERTEXAI}):
             adapter.run({"query": "test"})
@@ -627,9 +596,7 @@ class TestVertexAdapterRun:
         mock_model._model_name = None
         mock_model.model_name = None
 
-        adapter = VertexAIAgentsAdapter(
-            mock_model, model="gemini-2.0-flash"
-        )
+        adapter = VertexAIAgentsAdapter(mock_model, model="gemini-2.0-flash")
 
         with patch.dict(sys.modules, {"vertexai": _FAKE_VERTEXAI}):
             adapter.run({"query": "test"})
@@ -643,9 +610,7 @@ class TestVertexAdapterRun:
         candidate = _make_candidate([text_part])
         response = _make_response([candidate], text="Hello")
 
-        trace = self._run_with_response(
-            response, project_id="test-project", location="asia-east1"
-        )
+        trace = self._run_with_response(response, project_id="test-project", location="asia-east1")
 
         assert trace.metadata["vertex_project_id"] == "test-project"
         assert trace.metadata["vertex_location"] == "asia-east1"
@@ -669,9 +634,7 @@ class TestVertexAdapterBuildPrompt:
 
     def test_query_key(self) -> None:
         """'query' key is extracted first."""
-        prompt = VertexAIAgentsAdapter._build_user_prompt(
-            {"query": "hello", "input": "world"}
-        )
+        prompt = VertexAIAgentsAdapter._build_user_prompt({"query": "hello", "input": "world"})
         assert prompt == "hello"
 
     def test_input_key(self) -> None:
@@ -698,9 +661,7 @@ class TestVertexAdapterBuildPrompt:
 
     def test_multi_value_json_fallback(self) -> None:
         """Multiple non-reserved keys are serialized as JSON."""
-        prompt = VertexAIAgentsAdapter._build_user_prompt(
-            {"a": 1, "b": 2}
-        )
+        prompt = VertexAIAgentsAdapter._build_user_prompt({"a": 1, "b": 2})
         assert '"a"' in prompt
         assert '"b"' in prompt
 
@@ -711,9 +672,7 @@ class TestVertexAdapterToCallable:
     def test_returns_callable(self) -> None:
         """to_callable returns a callable."""
         mock_model = MagicMock()
-        adapter = VertexAIAgentsAdapter(
-            mock_model, model="gemini-2.0-flash"
-        )
+        adapter = VertexAIAgentsAdapter(mock_model, model="gemini-2.0-flash")
 
         with patch.dict(sys.modules, {"vertexai": _FAKE_VERTEXAI}):
             fn = adapter.to_callable()
@@ -727,9 +686,7 @@ class TestVertexAdapterToCallable:
     def test_raises_when_not_installed(self) -> None:
         """to_callable raises FrameworkNotInstalledError when SDK missing."""
         mock_model = MagicMock()
-        adapter = VertexAIAgentsAdapter(
-            mock_model, model="gemini-2.0-flash"
-        )
+        adapter = VertexAIAgentsAdapter(mock_model, model="gemini-2.0-flash")
 
         with patch.dict(sys.modules, {"vertexai": None}):
             with pytest.raises(FrameworkNotInstalledError):
@@ -772,5 +729,3 @@ class TestVertexAdapterGetConfig:
         config = adapter.get_config()
 
         assert config.metadata["team"] == "ml-platform"
-
-

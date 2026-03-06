@@ -47,9 +47,7 @@ def render_overview(query_api: QueryAPI, store: ResultStore) -> None:
 
     # Guard: no data at all
     if summary["total_runs"] == 0:
-        empty_state(
-            "No test runs yet. Run <code>agentassay run</code> to get started."
-        )
+        empty_state("No test runs yet. Run <code>agentassay run</code> to get started.")
         return
 
     # ── KPI cards ──────────────────────────────────────────────────────
@@ -98,9 +96,7 @@ def _render_kpi_cards(summary: dict[str, Any], query_api: QueryAPI) -> None:
     with c3:
         coverage_data = query_api.get_coverage_trend(days=7)
         if coverage_data:
-            avg_cov = sum(r["avg_score"] for r in coverage_data) / len(
-                coverage_data
-            )
+            avg_cov = sum(r["avg_score"] for r in coverage_data) / len(coverage_data)
             metric_card("Coverage", format_pass_rate(avg_cov))
         else:
             metric_card("Coverage", "--")

@@ -120,6 +120,7 @@ class TestSPRTRunner:
         runner = SPRTRunner(p0=0.90, p1=0.70)
         result = runner.update(passed=True)
         import math
+
         assert math.isfinite(result.upper_boundary)
         assert math.isfinite(result.lower_boundary)
         assert result.lower_boundary < result.upper_boundary

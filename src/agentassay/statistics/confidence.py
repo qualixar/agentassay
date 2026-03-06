@@ -45,21 +45,25 @@ References:
 from __future__ import annotations
 
 import math
+
 try:
     from enum import StrEnum
 except ImportError:
     from enum import Enum
+
     class StrEnum(str, Enum):  # Python 3.10 compat
         pass
+
+
 from typing import Final
 
 from pydantic import BaseModel, model_validator
 from scipy import stats as sp_stats
 
-
 # ============================================================================
 # Pydantic model for structured confidence interval results
 # ============================================================================
+
 
 class ConfidenceInterval(BaseModel, frozen=True):
     """Immutable result of a confidence interval computation.
@@ -88,11 +92,9 @@ class ConfidenceInterval(BaseModel, frozen=True):
     n: int
 
     @model_validator(mode="after")
-    def _check_bounds(self) -> "ConfidenceInterval":
+    def _check_bounds(self) -> ConfidenceInterval:
         if self.lower > self.upper:
-            raise ValueError(
-                f"lower ({self.lower}) must be <= upper ({self.upper})"
-            )
+            raise ValueError(f"lower ({self.lower}) must be <= upper ({self.upper})")
         return self
 
 
@@ -100,32 +102,27 @@ class ConfidenceInterval(BaseModel, frozen=True):
 # Input validation shared across all interval functions
 # ============================================================================
 
+
 def _validate_ci_inputs(successes: int, n: int, confidence: float) -> None:
     """Common input validation for the structured CI functions."""
     if n < 0:
         raise ValueError(f"n must be >= 0, got {n}")
     if n == 0:
         raise ValueError(
-            "Cannot compute a confidence interval with n=0 trials. "
-            "Run at least 1 trial first."
+            "Cannot compute a confidence interval with n=0 trials. Run at least 1 trial first."
         )
     if not (0 <= successes <= n):
-        raise ValueError(
-            f"successes must be in [0, n], got successes={successes}, n={n}"
-        )
+        raise ValueError(f"successes must be in [0, n], got successes={successes}, n={n}")
     if not (0.0 < confidence < 1.0):
-        raise ValueError(
-            f"confidence must be in (0, 1), got {confidence}"
-        )
+        raise ValueError(f"confidence must be in (0, 1), got {confidence}")
 
 
 # ============================================================================
 # Structured API — returns ConfidenceInterval Pydantic models
 # ============================================================================
 
-def wilson_interval(
-    successes: int, n: int, confidence: float = 0.95
-) -> ConfidenceInterval:
+
+def wilson_interval(successes: int, n: int, confidence: float = 0.95) -> ConfidenceInterval:
     """Wilson score confidence interval for a binomial proportion.
 
     This is the recommended default for agent testing.  The Wilson interval
@@ -226,9 +223,7 @@ def clopper_pearson_interval(
     )
 
 
-def normal_interval(
-    successes: int, n: int, confidence: float = 0.95
-) -> ConfidenceInterval:
+def normal_interval(successes: int, n: int, confidence: float = 0.95) -> ConfidenceInterval:
     """Normal approximation (Wald) confidence interval.
 
     This is the textbook interval::
@@ -282,6 +277,7 @@ def normal_interval(
 # Legacy API — preserved for backward compatibility
 # ============================================================================
 
+
 class ConfidenceMethod(StrEnum):
     """Supported confidence interval methods for binomial proportions."""
 
@@ -334,13 +330,9 @@ def binomial_confidence_interval(
     if n_successes < 0:
         raise ValueError(f"n_successes must be non-negative, got {n_successes}")
     if n_successes > n_trials:
-        raise ValueError(
-            f"n_successes ({n_successes}) cannot exceed n_trials ({n_trials})"
-        )
+        raise ValueError(f"n_successes ({n_successes}) cannot exceed n_trials ({n_trials})")
     if not 0.0 < confidence_level < 1.0:
-        raise ValueError(
-            f"confidence_level must be in (0, 1), got {confidence_level}"
-        )
+        raise ValueError(f"confidence_level must be in (0, 1), got {confidence_level}")
 
     method = ConfidenceMethod(method)
 
@@ -355,13 +347,9 @@ def binomial_confidence_interval(
     if method == ConfidenceMethod.WILSON:
         lower, upper = _wilson_interval_legacy(p_hat, n_trials, z)
     elif method == ConfidenceMethod.CLOPPER_PEARSON:
-        lower, upper = _clopper_pearson_interval_legacy(
-            n_successes, n_trials, alpha
-        )
+        lower, upper = _clopper_pearson_interval_legacy(n_successes, n_trials, alpha)
     elif method == ConfidenceMethod.AGRESTI_COULL:
-        lower, upper = _agresti_coull_interval(
-            n_successes, n_trials, z
-        )
+        lower, upper = _agresti_coull_interval(n_successes, n_trials, z)
     elif method == ConfidenceMethod.WALD:
         lower, upper = _wald_interval_legacy(p_hat, n_trials, z)
     else:
@@ -371,22 +359,16 @@ def binomial_confidence_interval(
     return (max(0.0, lower), min(1.0, upper))
 
 
-def _wilson_interval_legacy(
-    p_hat: float, n: int, z: float
-) -> tuple[float, float]:
+def _wilson_interval_legacy(p_hat: float, n: int, z: float) -> tuple[float, float]:
     """Wilson score interval (1927) — legacy tuple API."""
     z2 = z * z
     denominator = 1.0 + z2 / n
     center = (p_hat + z2 / (2.0 * n)) / denominator
-    half_width = (z / denominator) * math.sqrt(
-        p_hat * (1.0 - p_hat) / n + z2 / (4.0 * n * n)
-    )
+    half_width = (z / denominator) * math.sqrt(p_hat * (1.0 - p_hat) / n + z2 / (4.0 * n * n))
     return (center - half_width, center + half_width)
 
 
-def _clopper_pearson_interval_legacy(
-    k: int, n: int, alpha: float
-) -> tuple[float, float]:
+def _clopper_pearson_interval_legacy(k: int, n: int, alpha: float) -> tuple[float, float]:
     """Clopper-Pearson exact interval (1934) — legacy tuple API."""
     if k == 0:
         lower = 0.0
@@ -401,9 +383,7 @@ def _clopper_pearson_interval_legacy(
     return (float(lower), float(upper))
 
 
-def _agresti_coull_interval(
-    k: int, n: int, z: float
-) -> tuple[float, float]:
+def _agresti_coull_interval(k: int, n: int, z: float) -> tuple[float, float]:
     """Agresti-Coull adjusted Wald interval (1998)."""
     n_tilde = n + z * z
     p_tilde = (k + z * z / 2.0) / n_tilde
@@ -411,9 +391,7 @@ def _agresti_coull_interval(
     return (p_tilde - half_width, p_tilde + half_width)
 
 
-def _wald_interval_legacy(
-    p_hat: float, n: int, z: float
-) -> tuple[float, float]:
+def _wald_interval_legacy(p_hat: float, n: int, z: float) -> tuple[float, float]:
     """Standard Wald (normal approximation) interval — legacy tuple API."""
     if n == 0:
         return (0.0, 1.0)

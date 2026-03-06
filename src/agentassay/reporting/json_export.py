@@ -26,15 +26,15 @@ import agentassay
 from agentassay.attribution import QualixarSigner
 from agentassay.core.models import TrialResult
 from agentassay.coverage.aggregate import CoverageTuple
-from agentassay.mutation.runner import MutationSuiteResult
 from agentassay.metamorphic.runner import MetamorphicTestResult
+from agentassay.mutation.runner import MutationSuiteResult
 from agentassay.verdicts.gate import GateReport
 from agentassay.verdicts.verdict import StochasticVerdict
-
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _serialize_model(obj: Any) -> Any:
     """Recursively serialize Pydantic models and known types.
@@ -195,9 +195,7 @@ class JSONExporter:
         # Trial results
         trial_results: list[TrialResult] | None = data.get("trial_results")
         if trial_results is not None:
-            output["trial_results"] = [
-                r.model_dump(mode="json") for r in trial_results
-            ]
+            output["trial_results"] = [r.model_dump(mode="json") for r in trial_results]
             n = len(trial_results)
             passed = sum(1 for r in trial_results if r.passed)
             output["summary"] = {
@@ -205,12 +203,8 @@ class JSONExporter:
                 "passed": passed,
                 "failed": n - passed,
                 "pass_rate": passed / n if n > 0 else 0.0,
-                "mean_score": (
-                    sum(r.score for r in trial_results) / n if n > 0 else 0.0
-                ),
-                "total_cost_usd": sum(
-                    r.trace.total_cost_usd for r in trial_results
-                ),
+                "mean_score": (sum(r.score for r in trial_results) / n if n > 0 else 0.0),
+                "total_cost_usd": sum(r.trace.total_cost_usd for r in trial_results),
             }
 
         # Verdict
@@ -240,13 +234,9 @@ class JSONExporter:
             output["gate_decision"] = gate_dump
 
         # Metamorphic report
-        metamorphic_report: MetamorphicTestResult | None = data.get(
-            "metamorphic_report"
-        )
+        metamorphic_report: MetamorphicTestResult | None = data.get("metamorphic_report")
         if metamorphic_report is not None:
-            output["metamorphic_report"] = metamorphic_report.model_dump(
-                mode="json"
-            )
+            output["metamorphic_report"] = metamorphic_report.model_dump(mode="json")
 
         # Layer 2: Sign the content
         json_str = json.dumps(output, sort_keys=True, indent=indent, default=str)
@@ -286,6 +276,7 @@ class JSONExporter:
         cwd = Path.cwd().resolve()
         home = Path.home().resolve()
         import tempfile
+
         tmp = Path(tempfile.gettempdir()).resolve()
 
         allowed = False

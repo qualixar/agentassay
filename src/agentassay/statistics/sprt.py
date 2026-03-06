@@ -108,8 +108,7 @@ class SPRTRunner:
             raise ValueError(f"p1 must be in (0, 1), got {p1}")
         if p1 >= p0:
             raise ValueError(
-                f"p1 must be < p0 (regression means lower pass rate). "
-                f"Got p0={p0}, p1={p1}."
+                f"p1 must be < p0 (regression means lower pass rate). Got p0={p0}, p1={p1}."
             )
         if not (0.0 < alpha < 1.0):
             raise ValueError(f"alpha must be in (0, 1), got {alpha}")

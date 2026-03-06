@@ -62,18 +62,16 @@ from __future__ import annotations
 import math
 from typing import Any
 
-import numpy as np
 from pydantic import BaseModel, ConfigDict, Field
 from scipy import stats as sp_stats
 
 from agentassay.core.models import ExecutionTrace
-from agentassay.efficiency.fingerprint import (
-    BehavioralFingerprint,
-)
 from agentassay.efficiency.distribution import (
     FingerprintDistribution,
 )
-
+from agentassay.efficiency.fingerprint import (
+    BehavioralFingerprint,
+)
 
 # ===================================================================
 # BudgetEstimate — the frozen result of calibration
@@ -141,8 +139,8 @@ class BudgetEstimate(BaseModel):
 # (total > 7.0).
 
 _VARIANCE_THRESHOLDS: dict[str, float] = {
-    "stable": 1.5,       # total variance < 1.5
-    "moderate": 5.0,     # total variance < 5.0
+    "stable": 1.5,  # total variance < 1.5
+    "moderate": 5.0,  # total variance < 5.0
     # anything above 5.0 is "volatile"
 }
 
@@ -221,9 +219,7 @@ class AdaptiveBudgetOptimizer:
         if min_trials < 2:
             raise ValueError(f"min_trials must be >= 2, got {min_trials}")
         if max_trials < min_trials:
-            raise ValueError(
-                f"max_trials ({max_trials}) must be >= min_trials ({min_trials})"
-            )
+            raise ValueError(f"max_trials ({max_trials}) must be >= min_trials ({min_trials})")
 
         self._alpha = alpha
         self._beta = beta
@@ -497,7 +493,7 @@ class AdaptiveBudgetOptimizer:
         # Core formula: sample size for detecting effect size delta
         # in terms of average standard deviation
         z_sum_sq = (z_alpha + z_beta) ** 2
-        n_raw = z_sum_sq * avg_var / (self._delta ** 2)
+        n_raw = z_sum_sq * avg_var / (self._delta**2)
 
         # Correction for multivariate case: need extra samples to
         # estimate the covariance matrix reliably

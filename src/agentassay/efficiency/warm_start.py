@@ -164,17 +164,14 @@ class WarmStartSPRT:
         if not (0.0 < beta < 1.0):
             raise ValueError(f"beta must be in (0, 1), got {beta}")
         if alpha + beta >= 1.0:
-            raise ValueError(
-                f"alpha + beta must be < 1.0, got {alpha} + {beta} = {alpha + beta}"
-            )
+            raise ValueError(f"alpha + beta must be < 1.0, got {alpha} + {beta} = {alpha + beta}")
         if prior_successes < 0:
             raise ValueError(f"prior_successes must be >= 0, got {prior_successes}")
         if prior_trials < 0:
             raise ValueError(f"prior_trials must be >= 0, got {prior_trials}")
         if prior_successes > prior_trials:
             raise ValueError(
-                f"prior_successes ({prior_successes}) cannot exceed "
-                f"prior_trials ({prior_trials})"
+                f"prior_successes ({prior_successes}) cannot exceed prior_trials ({prior_trials})"
             )
 
         self._p0 = theta_0
@@ -199,9 +196,7 @@ class WarmStartSPRT:
             effective_prior_trials = int(round(prior_trials * decay_factor))
             effective_prior_successes = int(round(prior_successes * decay_factor))
             # Ensure consistency
-            effective_prior_successes = min(
-                effective_prior_successes, effective_prior_trials
-            )
+            effective_prior_successes = min(effective_prior_successes, effective_prior_trials)
 
         self._prior_successes = effective_prior_successes
         self._prior_trials = effective_prior_trials
@@ -209,8 +204,7 @@ class WarmStartSPRT:
         # Initialize LLR from prior (the warm start)
         prior_failures = effective_prior_trials - effective_prior_successes
         self._llr_initial = (
-            effective_prior_successes * self._llr_pass
-            + prior_failures * self._llr_fail
+            effective_prior_successes * self._llr_pass + prior_failures * self._llr_fail
         )
         self._llr = self._llr_initial
 
@@ -330,8 +324,8 @@ class WarmStartSPRT:
             return 0.0
 
         asn_cold = abs(
-            (self._alpha * self._upper_boundary
-             + (1.0 - self._alpha) * self._lower_boundary) / ez_h0
+            (self._alpha * self._upper_boundary + (1.0 - self._alpha) * self._lower_boundary)
+            / ez_h0
         )
 
         if asn_cold <= 0:

@@ -28,7 +28,6 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from agentassay.core.models import ExecutionTrace, TestScenario
 
-
 # ---------------------------------------------------------------------------
 # Result model
 # ---------------------------------------------------------------------------

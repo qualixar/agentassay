@@ -10,17 +10,17 @@ Target: 20+ tests.
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock, patch
 from typing import Any
+from unittest.mock import MagicMock, patch
 
 import pytest
 
 from agentassay.core.models import ExecutionTrace
-from agentassay.integrations.base import FrameworkNotInstalledError
 from agentassay.integrations.autogen_adapter import (
     AutoGenAdapter,
     _check_autogen_installed,
 )
+from agentassay.integrations.base import FrameworkNotInstalledError
 
 
 def _make_mock_agent(
@@ -69,9 +69,7 @@ class TestAdapterCreation:
         assert adapter.framework == "autogen"
 
     def test_infers_model_from_llm_config_list(self):
-        agent = _make_mock_agent(
-            llm_config={"config_list": [{"model": "gpt-4o-mini"}]}
-        )
+        agent = _make_mock_agent(llm_config={"config_list": [{"model": "gpt-4o-mini"}]})
         adapter = AutoGenAdapter(agent=agent)
         assert adapter.model == "gpt-4o-mini"
 
@@ -164,9 +162,7 @@ class TestMessageClassification:
         msg = {
             "role": "assistant",
             "content": "",
-            "tool_calls": [
-                {"function": {"name": "search", "arguments": '{"query": "test"}'}}
-            ],
+            "tool_calls": [{"function": {"name": "search", "arguments": '{"query": "test"}'}}],
         }
 
         action, kwargs = AutoGenAdapter._classify_autogen_message(msg)

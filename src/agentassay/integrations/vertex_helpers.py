@@ -76,15 +76,10 @@ def extract_steps(
 
     # Count total parts across all candidates for time distribution
     total_parts = sum(
-        len(getattr(getattr(c, "content", None), "parts", []) or [])
-        for c in candidates
+        len(getattr(getattr(c, "content", None), "parts", []) or []) for c in candidates
     )
     # Add grounding steps count estimate
-    grounding_count = sum(
-        1
-        for c in candidates
-        if getattr(c, "grounding_metadata", None)
-    )
+    grounding_count = sum(1 for c in candidates if getattr(c, "grounding_metadata", None))
     total_items = max(total_parts + grounding_count, 1)
     per_item_ms = total_call_ms / total_items
 
@@ -287,34 +282,34 @@ def extract_grounding_step(
     for chunk in chunks:
         web = getattr(chunk, "web", None)
         if web is not None:
-            sources.append({
-                "uri": getattr(web, "uri", ""),
-                "title": getattr(web, "title", ""),
-            })
+            sources.append(
+                {
+                    "uri": getattr(web, "uri", ""),
+                    "title": getattr(web, "title", ""),
+                }
+            )
         retrieved_context = getattr(chunk, "retrieved_context", None)
         if retrieved_context is not None:
-            sources.append({
-                "uri": getattr(retrieved_context, "uri", ""),
-                "title": getattr(retrieved_context, "title", ""),
-            })
+            sources.append(
+                {
+                    "uri": getattr(retrieved_context, "uri", ""),
+                    "title": getattr(retrieved_context, "title", ""),
+                }
+            )
 
     # Extract grounding supports count
     supports = getattr(grounding_metadata, "grounding_supports", None) or []
     num_supports = len(supports)
 
     # Extract retrieval quality score if available
-    retrieval_meta = getattr(
-        grounding_metadata, "retrieval_metadata", None
-    )
+    retrieval_meta = getattr(grounding_metadata, "retrieval_metadata", None)
     quality_score = (
         getattr(retrieval_meta, "google_search_dynamic_retrieval_score", None)
         if retrieval_meta
         else None
     )
 
-    source_summary = "; ".join(
-        s.get("title", s.get("uri", "unknown")) for s in sources[:5]
-    )
+    source_summary = "; ".join(s.get("title", s.get("uri", "unknown")) for s in sources[:5])
 
     return StepTrace(
         step_index=step_index,

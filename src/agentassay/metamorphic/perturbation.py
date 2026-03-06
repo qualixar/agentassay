@@ -25,7 +25,6 @@ from agentassay.metamorphic.base import (
     _text_similarity,
 )
 
-
 # Character-swap pairs for typographical perturbation
 _TYPO_SWAPS: list[tuple[str, str]] = [
     ("a", "s"),

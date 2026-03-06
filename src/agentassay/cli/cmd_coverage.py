@@ -20,7 +20,8 @@ from agentassay.cli.helpers import console, load_json
 
 @click.command("coverage")
 @click.option(
-    "--results", "-r",
+    "--results",
+    "-r",
     required=True,
     type=click.Path(exists=True),
     help="JSON file with trial results containing execution traces.",
@@ -55,10 +56,12 @@ def coverage_command(
         agentassay coverage --results trials.json --tools search,calculate,write
         agentassay coverage -r results.json --tools search --models gpt-4o,claude-opus-4-6
     """
-    console.print(Panel.fit(
-        "[bold]AgentAssay[/bold] -- Coverage Analysis",
-        border_style="blue",
-    ))
+    console.print(
+        Panel.fit(
+            "[bold]AgentAssay[/bold] -- Coverage Analysis",
+            border_style="blue",
+        )
+    )
 
     # Parse known tools and models
     known_tools: set[str] = set()
@@ -103,6 +106,7 @@ def coverage_command(
 
         try:
             from agentassay.core.models import ExecutionTrace
+
             trace = ExecutionTrace(**trace_data)
             collector.update(trace)
             trace_count += 1
@@ -114,12 +118,8 @@ def coverage_command(
             continue
 
     if trace_count == 0:
-        console.print(
-            "[yellow]Warning:[/yellow] No valid execution traces found in results file."
-        )
-        console.print(
-            "[dim]Coverage requires TrialResult objects with ExecutionTrace data.[/dim]"
-        )
+        console.print("[yellow]Warning:[/yellow] No valid execution traces found in results file.")
+        console.print("[dim]Coverage requires TrialResult objects with ExecutionTrace data.[/dim]")
 
         # Show empty coverage
         cov_table = Table(title="Coverage Vector (no data)", show_header=True)
@@ -175,18 +175,20 @@ def coverage_command(
 
     # Weakest dimension
     weakest_name, weakest_val = snapshot.weakest
-    console.print(
-        f"\n[yellow]Weakest dimension:[/yellow] {weakest_name} ({weakest_val:.2%})"
-    )
+    console.print(f"\n[yellow]Weakest dimension:[/yellow] {weakest_name} ({weakest_val:.2%})")
 
     # Summary stats
     stats_table = Table(title="Analysis Summary", show_header=True)
     stats_table.add_column("Metric", style="cyan")
     stats_table.add_column("Value", style="white")
     stats_table.add_row("Traces analyzed", str(trace_count))
-    stats_table.add_row("Known tools", str(known_tools) if known_tools else "[dim]auto-detected[/dim]")
+    stats_table.add_row(
+        "Known tools", str(known_tools) if known_tools else "[dim]auto-detected[/dim]"
+    )
     stats_table.add_row("Tools observed", ", ".join(sorted(tools_observed)) or "[dim]none[/dim]")
-    stats_table.add_row("Known models", str(known_models) if known_models else "[dim]auto-detected[/dim]")
+    stats_table.add_row(
+        "Known models", str(known_models) if known_models else "[dim]auto-detected[/dim]"
+    )
     stats_table.add_row("Models observed", ", ".join(sorted(models_observed)) or "[dim]none[/dim]")
     stats_table.add_row("Unique paths", str(len(paths_observed)))
     console.print(stats_table)

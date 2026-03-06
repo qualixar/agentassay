@@ -26,10 +26,10 @@ from pydantic import (
     model_validator,
 )
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _uuid() -> str:
     """Generate a new UUID4 string."""
@@ -94,9 +94,7 @@ class StepTrace(BaseModel):
     def _tool_fields_consistency(self) -> StepTrace:
         """If action is 'tool_call', tool_name must be set."""
         if self.action == "tool_call" and not self.tool_name:
-            raise ValueError(
-                "tool_name is required when action is 'tool_call'"
-            )
+            raise ValueError("tool_name is required when action is 'tool_call'")
         return self
 
 
@@ -135,11 +133,7 @@ class ExecutionTrace(BaseModel):
     @property
     def tools_used(self) -> set[str]:
         """All unique tool names invoked during this execution."""
-        return {
-            s.tool_name
-            for s in self.steps
-            if s.tool_name is not None
-        }
+        return {s.tool_name for s in self.steps if s.tool_name is not None}
 
     @property
     def step_count(self) -> int:
@@ -159,8 +153,7 @@ class ExecutionTrace(BaseModel):
         indices = [s.step_index for s in self.steps]
         if indices != sorted(indices):
             raise ValueError(
-                "StepTrace.step_index values must be monotonically increasing; "
-                f"got {indices}"
+                f"StepTrace.step_index values must be monotonically increasing; got {indices}"
             )
         return self
 
@@ -285,23 +278,16 @@ class AssayConfig(BaseModel):
     power: float = Field(default=0.80, gt=0.0, lt=1.0)
     effect_size_threshold: float = Field(default=0.10, ge=0.0, le=1.0)
 
-    confidence_method: Literal[
-        "wilson", "clopper-pearson", "normal"
-    ] = "wilson"
+    confidence_method: Literal["wilson", "clopper-pearson", "normal"] = "wilson"
 
-    regression_test: Literal[
-        "fisher", "chi2", "ks", "mann-whitney"
-    ] = "fisher"
+    regression_test: Literal["fisher", "chi2", "ks", "mann-whitney"] = "fisher"
 
     # --- Sequential testing (SPRT) ---
     use_sprt: bool = False
     sprt_strength: float = Field(
         default=0.0,
         ge=0.0,
-        description=(
-            "Wald log-likelihood ratio threshold. "
-            "0 means auto-derive from alpha/beta."
-        ),
+        description=("Wald log-likelihood ratio threshold. 0 means auto-derive from alpha/beta."),
     )
 
     # --- Reproducibility ---
@@ -323,6 +309,7 @@ class AssayConfig(BaseModel):
         """Stochastic testing with < 10 trials is unreliable."""
         if v < 10:
             import warnings
+
             warnings.warn(
                 f"num_trials={v} is very low for stochastic testing; "
                 "results will have wide confidence intervals. "

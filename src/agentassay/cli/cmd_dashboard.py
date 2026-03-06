@@ -67,14 +67,14 @@ def dashboard_command(
     Requires: pip install agentassay[dashboard]
     """
     # Security: Validate host parameter
-    import re
     import ipaddress
+    import re
 
     if host not in ("localhost", "127.0.0.1", "0.0.0.0"):
         try:
             ipaddress.ip_address(host)
         except ValueError:
-            if not re.match(r'^[a-zA-Z0-9.-]+$', host):
+            if not re.match(r"^[a-zA-Z0-9.-]+$", host):
                 raise click.ClickException(f"Invalid host: {host}")
 
     # Security: Validate port range
@@ -102,13 +102,10 @@ def dashboard_command(
         # Fallback: construct path relative to this file
         from pathlib import Path
 
-        app_path = str(
-            Path(__file__).resolve().parent.parent / "dashboard" / "app.py"
-        )
+        app_path = str(Path(__file__).resolve().parent.parent / "dashboard" / "app.py")
 
     console.print(
-        f"[bold green]Starting AgentAssay Dashboard[/bold green] "
-        f"on [bold]{host}:{port}[/bold]"
+        f"[bold green]Starting AgentAssay Dashboard[/bold green] on [bold]{host}:{port}[/bold]"
     )
 
     cmd = [

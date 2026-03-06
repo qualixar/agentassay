@@ -31,7 +31,6 @@ from agentassay.mutation.base import (
     _split_sentences,
 )
 
-
 # ---------------------------------------------------------------------------
 # Synonym table for PromptSynonymMutator
 # ---------------------------------------------------------------------------
@@ -117,9 +116,7 @@ class PromptSynonymMutator(MutationOperator):
         text_lower = text.lower()
 
         # Find all replaceable words present in the text
-        candidates: list[str] = [
-            word for word in self._synonyms if word in text_lower
-        ]
+        candidates: list[str] = [word for word in self._synonyms if word in text_lower]
 
         if not candidates:
             return new_config, _rebuild_scenario(scenario, input_data=input_data)
@@ -372,7 +369,7 @@ class PromptDropMutator(MutationOperator):
             if len(self._dropped_sentence) > 80
             else self._dropped_sentence
         )
-        return f"Dropped sentence: \"{preview}\""
+        return f'Dropped sentence: "{preview}"'
 
 
 __all__ = [

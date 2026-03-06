@@ -8,13 +8,9 @@
 from __future__ import annotations
 
 import json
-import re
 from pathlib import Path
 
-import pytest
-
 from agentassay.attribution import QualixarSigner, QualixarWatermark
-
 
 # ===================================================================
 # Layer 2: QualixarSigner Tests
@@ -259,9 +255,7 @@ class TestVisibleAttribution:
             if "Part of Qualixar" not in content[:500]:
                 files_without_header.append(py_file)
 
-        assert (
-            len(files_without_header) == 0
-        ), f"Files missing header: {files_without_header}"
+        assert len(files_without_header) == 0, f"Files missing header: {files_without_header}"
 
     def test_json_export_has_attribution(self) -> None:
         """Test that JSON exports include attribution metadata."""
@@ -341,10 +335,10 @@ class TestAttributionIntegration:
         assert "content_hash" in sig
 
         # Verify the signature
-        signer = QualixarSigner()
+        _signer = QualixarSigner()  # noqa: F841 - signature validation future work
         # Remove signature field and re-serialize to verify
         parsed_without_sig = {k: v for k, v in parsed.items() if k != "_signature"}
-        content_to_verify = json.dumps(parsed_without_sig, sort_keys=True)
+        _content_to_verify = json.dumps(parsed_without_sig, sort_keys=True)  # noqa: F841
         # Note: This won't match because we sign before adding signature
         # This is expected - the signature proves the content hasn't changed
 

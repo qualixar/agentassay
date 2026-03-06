@@ -16,18 +16,23 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass
+
 try:
     from enum import StrEnum
 except ImportError:
     from enum import Enum
+
     class StrEnum(str, Enum):  # Python 3.10 compat
         pass
+
+
 from typing import Final
 
 import numpy as np
 from scipy import stats as sp_stats
 
 from agentassay.statistics.effect_size import cohens_h as _cohens_h_standalone
+
 
 class RegressionTest(StrEnum):
     """Supported hypothesis tests for binary regression detection."""
@@ -89,9 +94,7 @@ _RANK_BISERIAL_THRESHOLDS: Final[list[tuple[float, str]]] = [
 ]
 
 
-def _interpret_effect_size(
-    value: float, thresholds: list[tuple[float, str]]
-) -> str:
+def _interpret_effect_size(value: float, thresholds: list[tuple[float, str]]) -> str:
     """Map an absolute effect size to a qualitative interpretation."""
     abs_val = abs(value)
     for threshold, label in thresholds:
@@ -233,9 +236,7 @@ def test_binary_regression(
             test_name = "Fisher's exact test (one-sided, fallback from chi2)"
             statistic = float(p_baseline - p_current)
         else:
-            chi2_stat, p_two_sided, _, _ = sp_stats.chi2_contingency(
-                table, correction=True
-            )
+            chi2_stat, p_two_sided, _, _ = sp_stats.chi2_contingency(table, correction=True)
             # One-sided: halve and check direction
             if p_current < p_baseline:
                 p_value = p_two_sided / 2.0
@@ -259,8 +260,10 @@ def test_binary_regression(
 
     # Power estimate
     power = _estimate_power_proportions(
-        p_baseline, p_current,
-        baseline_trials, current_trials,
+        p_baseline,
+        p_current,
+        baseline_trials,
+        current_trials,
         alpha,
     )
 
@@ -320,16 +323,12 @@ def test_score_regression(
     n2 = len(current)
 
     if method == ScoreTest.MANN_WHITNEY:
-        u_stat, p_value = sp_stats.mannwhitneyu(
-            baseline, current, alternative="greater"
-        )
+        u_stat, p_value = sp_stats.mannwhitneyu(baseline, current, alternative="greater")
         test_name = "Mann-Whitney U test (one-sided)"
         statistic = float(u_stat)
         effect = rank_biserial_r(u_stat, n1, n2)
         effect_name = "rank-biserial r"
-        effect_interp = _interpret_effect_size(
-            effect, _RANK_BISERIAL_THRESHOLDS
-        )
+        effect_interp = _interpret_effect_size(effect, _RANK_BISERIAL_THRESHOLDS)
 
     elif method == ScoreTest.KS:
         ks_stat, p_two_sided = sp_stats.ks_2samp(baseline, current)
@@ -341,9 +340,7 @@ def test_score_regression(
         statistic = float(ks_stat)
         effect = float(ks_stat)
         effect_name = "KS statistic"
-        effect_interp = _interpret_effect_size(
-            ks_stat, _RANK_BISERIAL_THRESHOLDS
-        )
+        effect_interp = _interpret_effect_size(ks_stat, _RANK_BISERIAL_THRESHOLDS)
 
     elif method == ScoreTest.WELCH_T:
         t_stat, p_value = sp_stats.ttest_ind(

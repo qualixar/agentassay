@@ -21,7 +21,6 @@ from agentassay.metamorphic.relations import (
     TypographicalPerturbation,
     _text_similarity,
 )
-
 from tests.conftest import make_scenario, make_trace
 
 
@@ -68,9 +67,7 @@ class TestInputPermutationRelation:
 
     def test_transform_shuffles_items(self):
         relation = InputPermutationRelation(seed=42)
-        scenario = make_scenario(
-            input_data={"items": ["a", "b", "c", "d", "e"]}
-        )
+        scenario = make_scenario(input_data={"items": ["a", "b", "c", "d", "e"]})
         followup = relation.transform_input(scenario)
         # The items should be in different order (with high probability)
         assert followup.input_data.get("items") is not None
@@ -105,9 +102,7 @@ class TestToolOrderRelation:
 
     def test_transform_with_tools_list(self):
         relation = ToolOrderRelation(seed=42)
-        scenario = make_scenario(
-            input_data={"tools": ["search", "calculate", "write", "read"]}
-        )
+        scenario = make_scenario(input_data={"tools": ["search", "calculate", "write", "read"]})
         followup = relation.transform_input(scenario)
         assert "tools" in followup.input_data
 
@@ -129,9 +124,7 @@ class TestTypographicalPerturbation:
 
     def test_introduces_typos(self):
         relation = TypographicalPerturbation(num_typos=3, seed=42)
-        scenario = make_scenario(
-            input_data={"query": "What is the capital of France?"}
-        )
+        scenario = make_scenario(input_data={"query": "What is the capital of France?"})
         followup = relation.transform_input(scenario)
         # Should be different (with high probability for 3 typos)
         original = scenario.input_data["query"]
@@ -152,18 +145,14 @@ class TestIrrelevantAdditionRelation:
 
     def test_adds_irrelevant_text(self):
         relation = IrrelevantAdditionRelation(num_additions=2, seed=42)
-        scenario = make_scenario(
-            input_data={"query": "What is AI?"}
-        )
+        scenario = make_scenario(input_data={"query": "What is AI?"})
         followup = relation.transform_input(scenario)
         # Follow-up text should be longer
         assert len(followup.input_data["query"]) > len(scenario.input_data["query"])
 
     def test_custom_irrelevant_texts(self):
         custom = ["Random fact 1.", "Random fact 2."]
-        relation = IrrelevantAdditionRelation(
-            irrelevant_texts=custom, num_additions=1, seed=42
-        )
+        relation = IrrelevantAdditionRelation(irrelevant_texts=custom, num_additions=1, seed=42)
         scenario = make_scenario(input_data={"query": "test"})
         followup = relation.transform_input(scenario)
         text = followup.input_data["query"]
@@ -188,9 +177,7 @@ class TestDecompositionRelation:
 
     def test_no_decomposition_single_query(self):
         relation = DecompositionRelation(seed=42)
-        scenario = make_scenario(
-            input_data={"query": "What is the capital of France?"}
-        )
+        scenario = make_scenario(input_data={"query": "What is the capital of France?"})
         sub = relation.decompose(scenario)
         assert len(sub) == 1
 

@@ -16,14 +16,12 @@ Uses ``random.Random`` with optional seeding for reproducible mutations.
 
 from __future__ import annotations
 
-import copy
 import random as _random_module
 import re
 from abc import ABC, abstractmethod
 from typing import Any
 
 from agentassay.core.models import AgentConfig, TestScenario
-
 
 # ===================================================================
 # Abstract Base Class

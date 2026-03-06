@@ -29,13 +29,15 @@ from agentassay.statistics.confidence import wilson_interval
 
 @click.command("report")
 @click.option(
-    "--results", "-r",
+    "--results",
+    "-r",
     required=True,
     type=click.Path(exists=True),
     help="JSON file with trial results.",
 )
 @click.option(
-    "--output", "-o",
+    "--output",
+    "-o",
     type=click.Path(),
     default="agentassay-report.html",
     show_default=True,
@@ -53,10 +55,12 @@ def report_command(results: str, output: str) -> None:
         agentassay report --results trials.json
         agentassay report -r results.json -o my-report.html
     """
-    console.print(Panel.fit(
-        "[bold]AgentAssay[/bold] -- HTML Report Generator",
-        border_style="blue",
-    ))
+    console.print(
+        Panel.fit(
+            "[bold]AgentAssay[/bold] -- HTML Report Generator",
+            border_style="blue",
+        )
+    )
 
     # Load results
     try:
@@ -96,7 +100,9 @@ def report_command(results: str, output: str) -> None:
         out_path.write_text(html, encoding="utf-8")
         console.print(f"[green]Report written to {output}[/green]")
     except OSError:
-        raise click.ClickException(f"Cannot write report to {Path(output).name}. Check permissions.")
+        raise click.ClickException(
+            f"Cannot write report to {Path(output).name}. Check permissions."
+        )
 
     # Print summary
     summary = Table(title="Report Summary", show_header=True)
@@ -118,6 +124,17 @@ def _build_html(
     timestamp: str,
 ) -> str:
     """Build the self-contained HTML report string."""
+    # Compute verdict display values
+    verdict_class = "pass" if rate >= 0.80 else ("fail" if rate < 0.50 else "inconclusive")
+    if n > 0 and ci_lower >= 0.80:
+        verdict_text = "PASS"
+    elif n > 0 and ci_upper < 0.80:
+        verdict_text = "FAIL"
+    elif n > 0:
+        verdict_text = "INCONCLUSIVE"
+    else:
+        verdict_text = "NO DATA"
+
     return f"""\
 <!DOCTYPE html>
 <html lang="en">
@@ -139,7 +156,8 @@ def _build_html(
         }}
         * {{ margin: 0; padding: 0; box-sizing: border-box; }}
         body {{
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial,
+                sans-serif;
             background: var(--bg);
             color: var(--text);
             padding: 2rem;
@@ -204,8 +222,8 @@ def _build_html(
     <p class="subtitle">Generated: {timestamp}</p>
 
     <div class="card">
-        <div class="verdict {'pass' if rate >= 0.80 else 'fail' if rate < 0.50 else 'inconclusive'}">
-            {'PASS' if n > 0 and ci_lower >= 0.80 else 'FAIL' if n > 0 and ci_upper < 0.80 else 'INCONCLUSIVE' if n > 0 else 'NO DATA'}
+        <div class="verdict {verdict_class}">
+            {verdict_text}
         </div>
     </div>
 
@@ -223,7 +241,7 @@ def _build_html(
     <h2>Pass Rate</h2>
     <div class="card">
         <div class="bar-container">
-            <div class="bar-fill {'warn' if rate < 0.80 else ''} {'fail' if rate < 0.50 else ''}"
+            <div class="bar-fill {"warn" if rate < 0.80 else ""} {"fail" if rate < 0.50 else ""}"
                  style="width: {rate * 100:.1f}%"></div>
         </div>
         <p style="text-align: center; margin-top: 0.5rem; color: var(--text-dim);">

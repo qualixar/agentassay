@@ -9,15 +9,13 @@ Target: 18+ tests covering all query methods plus edge cases.
 from __future__ import annotations
 
 import json
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
 
 import pytest
 
 from agentassay.persistence.queries import QueryAPI
 from agentassay.persistence.storage import ResultStore
-
 
 # ===================================================================
 # Helpers
@@ -278,11 +276,13 @@ class TestFingerprintComparison:
         r1 = _save_run(store, run_id="run-base")
         r2 = _save_run(store, run_id="run-cand")
         store.save_fingerprint(
-            run_id=r1, scenario_id="s1",
+            run_id=r1,
+            scenario_id="s1",
             vector_json=json.dumps([0.1, 0.2]),
         )
         store.save_fingerprint(
-            run_id=r2, scenario_id="s1",
+            run_id=r2,
+            scenario_id="s1",
             vector_json=json.dumps([0.3, 0.4]),
         )
 
@@ -315,7 +315,9 @@ class TestGateHistory:
         store = _make_store(tmp_path)
         rid = _save_run(store)
         store.save_gate_decision(
-            run_id=rid, pipeline="main", decision="DEPLOY",
+            run_id=rid,
+            pipeline="main",
+            decision="DEPLOY",
             rules_json=json.dumps({"min_pass": 0.8}),
         )
         api = QueryAPI(store)
@@ -328,11 +330,15 @@ class TestGateHistory:
         store = _make_store(tmp_path)
         rid = _save_run(store)
         store.save_gate_decision(
-            run_id=rid, pipeline="main", decision="DEPLOY",
+            run_id=rid,
+            pipeline="main",
+            decision="DEPLOY",
             rules_json="{}",
         )
         store.save_gate_decision(
-            run_id=rid, pipeline="staging", decision="BLOCK",
+            run_id=rid,
+            pipeline="staging",
+            decision="BLOCK",
             rules_json="{}",
         )
         api = QueryAPI(store)

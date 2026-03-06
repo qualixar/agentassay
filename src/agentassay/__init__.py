@@ -32,13 +32,12 @@ QualixarWatermark
 __version__ = "0.1.1"
 
 # Core classes
+# Attribution (Qualixar 3-Layer System)
+from agentassay.attribution import QualixarSigner, QualixarWatermark
 from agentassay.core import ExecutionTrace, TestScenario, TrialRunner
 
 # Verdicts and gates
 from agentassay.verdicts import DeploymentGate, VerdictFunction
-
-# Attribution (Qualixar 3-Layer System)
-from agentassay.attribution import QualixarSigner, QualixarWatermark
 
 __all__ = [
     # Core

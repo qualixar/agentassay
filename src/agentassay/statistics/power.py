@@ -86,8 +86,7 @@ def required_sample_size(
         raise ValueError(f"p1 must be in (0, 1), got {p1}")
     if p1 >= p0:
         raise ValueError(
-            f"p1 must be < p0 (regression means lower pass rate). "
-            f"Got p0={p0}, p1={p1}."
+            f"p1 must be < p0 (regression means lower pass rate). Got p0={p0}, p1={p1}."
         )
     if not (0.0 < alpha < 1.0):
         raise ValueError(f"alpha must be in (0, 1), got {alpha}")
@@ -95,8 +94,8 @@ def required_sample_size(
         raise ValueError(f"power must be in (0, 1), got {power}")
 
     beta = 1.0 - power
-    z_alpha = sp_stats.norm.ppf(1.0 - alpha)        # one-sided
-    z_beta = sp_stats.norm.ppf(1.0 - beta)           # = norm.ppf(power)
+    z_alpha = sp_stats.norm.ppf(1.0 - alpha)  # one-sided
+    z_beta = sp_stats.norm.ppf(1.0 - beta)  # = norm.ppf(power)
 
     numerator = (z_alpha + z_beta) ** 2 * (p0 * (1.0 - p0) + p1 * (1.0 - p1))
     denominator = (p0 - p1) ** 2
@@ -158,8 +157,7 @@ def achieved_power(
         raise ValueError(f"p1 must be in (0, 1), got {p1}")
     if p1 >= p0:
         raise ValueError(
-            f"p1 must be < p0 (regression means lower pass rate). "
-            f"Got p0={p0}, p1={p1}."
+            f"p1 must be < p0 (regression means lower pass rate). Got p0={p0}, p1={p1}."
         )
     if n < 1:
         raise ValueError(f"n must be >= 1, got {n}")
@@ -169,8 +167,8 @@ def achieved_power(
     z_alpha = sp_stats.norm.ppf(1.0 - alpha)  # one-sided critical value
 
     # Standard error under H0 and H1
-    se_h0 = math.sqrt(p0 * (1.0 - p0) / n)
-    se_h1 = math.sqrt(p1 * (1.0 - p1) / n)
+    _se_h0 = math.sqrt(p0 * (1.0 - p0) / n)  # noqa: F841 - computed for documentation
+    _se_h1 = math.sqrt(p1 * (1.0 - p1) / n)  # noqa: F841 - computed for documentation
 
     # The rejection threshold on the observed rate scale
     # We reject H0 when (p_hat_baseline - p_hat_current) > threshold

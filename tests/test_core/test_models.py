@@ -10,7 +10,7 @@ Target: ~40 tests.
 from __future__ import annotations
 
 import warnings
-from datetime import datetime, timezone
+from datetime import datetime
 
 import pytest
 from pydantic import ValidationError
@@ -23,9 +23,7 @@ from agentassay.core.models import (
     TestScenario,
     TrialResult,
 )
-
-from tests.conftest import make_step, make_trace, make_scenario
-
+from tests.conftest import make_scenario, make_step, make_trace
 
 # ===================================================================
 # StepTrace
@@ -346,16 +344,12 @@ class TestAssayConfig:
         )
         assert cfg.use_sprt is True
 
-    @pytest.mark.parametrize(
-        "method", ["wilson", "clopper-pearson", "normal"]
-    )
+    @pytest.mark.parametrize("method", ["wilson", "clopper-pearson", "normal"])
     def test_valid_confidence_methods(self, method):
         cfg = AssayConfig(confidence_method=method)
         assert cfg.confidence_method == method
 
-    @pytest.mark.parametrize(
-        "test", ["fisher", "chi2", "ks", "mann-whitney"]
-    )
+    @pytest.mark.parametrize("test", ["fisher", "chi2", "ks", "mann-whitney"])
     def test_valid_regression_tests(self, test):
         cfg = AssayConfig(regression_test=test)
         assert cfg.regression_test == test

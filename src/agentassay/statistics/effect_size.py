@@ -23,12 +23,12 @@ Interpretation follows Cohen's (1988) conventions extended to the agent domain.
 from __future__ import annotations
 
 import math
-from typing import Sequence
-
+from collections.abc import Sequence
 
 # ---------------------------------------------------------------------------
 # Cohen's h — effect size for two proportions
 # ---------------------------------------------------------------------------
+
 
 def cohens_h(p1: float, p2: float) -> float:
     """Compute Cohen's h for the difference between two proportions.
@@ -69,6 +69,7 @@ def cohens_h(p1: float, p2: float) -> float:
 # Glass's delta — baseline-normalised mean difference
 # ---------------------------------------------------------------------------
 
+
 def glass_delta(baseline: Sequence[float], treatment: Sequence[float]) -> float:
     """Compute Glass's delta between a treatment and a baseline distribution.
 
@@ -98,13 +99,9 @@ def glass_delta(baseline: Sequence[float], treatment: Sequence[float]) -> float:
         if baseline standard deviation is zero.
     """
     if len(baseline) < 2:
-        raise ValueError(
-            f"baseline must have at least 2 observations, got {len(baseline)}"
-        )
+        raise ValueError(f"baseline must have at least 2 observations, got {len(baseline)}")
     if len(treatment) < 1:
-        raise ValueError(
-            f"treatment must have at least 1 observation, got {len(treatment)}"
-        )
+        raise ValueError(f"treatment must have at least 1 observation, got {len(treatment)}")
 
     baseline_mean = sum(baseline) / len(baseline)
     treatment_mean = sum(treatment) / len(treatment)
@@ -129,6 +126,7 @@ def glass_delta(baseline: Sequence[float], treatment: Sequence[float]) -> float:
 # ---------------------------------------------------------------------------
 # Rank-biserial correlation — effect size for Mann-Whitney U
 # ---------------------------------------------------------------------------
+
 
 def rank_biserial(u_statistic: float, n1: int, n2: int) -> float:
     """Compute the rank-biserial correlation from a Mann-Whitney U statistic.
@@ -210,7 +208,7 @@ def interpret_effect_size(value: float, metric: str) -> str:
     """
     key = metric.lower().replace("'", "").replace(" ", "_")
     # Accept both snake_case and display names
-    _ALIAS: dict[str, str] = {
+    _ALIAS: dict[str, str] = {  # noqa: N806 - constant-like mapping
         "cohens_h": "cohens_h",
         "cohen_h": "cohens_h",
         "glasss_delta": "glass_delta",
@@ -221,10 +219,7 @@ def interpret_effect_size(value: float, metric: str) -> str:
 
     canonical = _ALIAS.get(key)
     if canonical is None:
-        raise ValueError(
-            f"Unknown effect size metric '{metric}'. "
-            f"Supported: {list(_ALIAS.keys())}"
-        )
+        raise ValueError(f"Unknown effect size metric '{metric}'. Supported: {list(_ALIAS.keys())}")
 
     small, medium, large = _THRESHOLDS[canonical]
     abs_value = abs(value)

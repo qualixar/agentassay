@@ -205,15 +205,11 @@ class CustomAdapter(AgentAdapter):
 
         # Case 2: Dict result
         if isinstance(result, dict):
-            return self._from_dict(
-                result, input_data, scenario_id, trace_id, call_duration_ms
-            )
+            return self._from_dict(result, input_data, scenario_id, trace_id, call_duration_ms)
 
         # Case 3: String result
         if isinstance(result, str):
-            return self._from_string(
-                result, input_data, scenario_id, trace_id, call_duration_ms
-            )
+            return self._from_string(result, input_data, scenario_id, trace_id, call_duration_ms)
 
         # Case 4: Any other type — stringify
         return self._from_string(
@@ -336,9 +332,7 @@ class CustomAdapter(AgentAdapter):
             metadata=self._metadata,
         )
 
-    def _dict_to_step(
-        self, step_dict: dict[str, Any], index: int
-    ) -> StepTrace:
+    def _dict_to_step(self, step_dict: dict[str, Any], index: int) -> StepTrace:
         """Convert a raw step dict into a StepTrace."""
         action = step_dict.get("action", "llm_response")
         duration = float(step_dict.get("duration_ms", 0.0))

@@ -13,7 +13,7 @@ from typing import Any
 
 import pytest
 
-from agentassay.core.models import AssayConfig, ExecutionTrace
+from agentassay.core.models import ExecutionTrace
 from agentassay.core.runner import (
     CostBudgetExceededError,
     TrialRunner,
@@ -107,49 +107,37 @@ class TestTrialRunner:
 
     def test_evaluate_must_use_tools(self):
         runner = self._make_runner()
-        scenario = make_scenario(
-            expected_properties={"must_use_tools": ["search"]}
-        )
+        scenario = make_scenario(expected_properties={"must_use_tools": ["search"]})
         result = runner.run_trial(scenario)
         assert result.passed is True
 
     def test_evaluate_must_use_tools_fail(self):
         runner = self._make_runner()
-        scenario = make_scenario(
-            expected_properties={"must_use_tools": ["nonexistent_tool"]}
-        )
+        scenario = make_scenario(expected_properties={"must_use_tools": ["nonexistent_tool"]})
         result = runner.run_trial(scenario)
         assert result.passed is False
 
     def test_evaluate_must_not_use_tools(self):
         runner = self._make_runner()
-        scenario = make_scenario(
-            expected_properties={"must_not_use_tools": ["dangerous_tool"]}
-        )
+        scenario = make_scenario(expected_properties={"must_not_use_tools": ["dangerous_tool"]})
         result = runner.run_trial(scenario)
         assert result.passed is True
 
     def test_evaluate_output_contains(self):
         runner = self._make_runner()
-        scenario = make_scenario(
-            expected_properties={"output_contains": "success"}
-        )
+        scenario = make_scenario(expected_properties={"output_contains": "success"})
         result = runner.run_trial(scenario)
         assert result.passed is True
 
     def test_evaluate_output_contains_fail(self):
         runner = self._make_runner()
-        scenario = make_scenario(
-            expected_properties={"output_contains": "nonexistent_text"}
-        )
+        scenario = make_scenario(expected_properties={"output_contains": "nonexistent_text"})
         result = runner.run_trial(scenario)
         assert result.passed is False
 
     def test_evaluate_max_cost(self):
         runner = self._make_runner()
-        scenario = make_scenario(
-            expected_properties={"max_cost_usd": 10.0}
-        )
+        scenario = make_scenario(expected_properties={"max_cost_usd": 10.0})
         result = runner.run_trial(scenario)
         assert result.passed is True
 

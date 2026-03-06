@@ -66,13 +66,12 @@ import numpy as np
 from scipy import stats as sp_stats
 
 from agentassay.core.models import ExecutionTrace
-from agentassay.efficiency.fingerprint import (
-    BehavioralFingerprint,
-)
 from agentassay.efficiency.distribution import (
     FingerprintDistribution,
 )
-
+from agentassay.efficiency.fingerprint import (
+    BehavioralFingerprint,
+)
 
 # ===================================================================
 # MultiFidelityTester
@@ -186,13 +185,9 @@ class MultiFidelityTester:
             If either trace list has fewer than 2 elements.
         """
         if len(proxy_traces) < 2:
-            raise ValueError(
-                f"Need at least 2 proxy traces, got {len(proxy_traces)}"
-            )
+            raise ValueError(f"Need at least 2 proxy traces, got {len(proxy_traces)}")
         if len(target_traces) < 2:
-            raise ValueError(
-                f"Need at least 2 target traces, got {len(target_traces)}"
-            )
+            raise ValueError(f"Need at least 2 target traces, got {len(target_traces)}")
 
         # Extract fingerprint vectors
         proxy_fps = [BehavioralFingerprint.from_trace(t) for t in proxy_traces]
@@ -526,8 +521,7 @@ def _stouffer_combine(
     """
     if len(p_values) != len(weights):
         raise ValueError(
-            f"p_values and weights must have same length: "
-            f"{len(p_values)} vs {len(weights)}"
+            f"p_values and weights must have same length: {len(p_values)} vs {len(weights)}"
         )
 
     # Convert p-values to Z-scores

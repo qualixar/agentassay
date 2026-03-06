@@ -23,10 +23,10 @@ from __future__ import annotations
 import uuid
 from datetime import datetime, timezone
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _uuid() -> str:
     """Generate a new UUID4 string."""
@@ -42,10 +42,18 @@ def _now_iso() -> str:
 # Known tables -- used for injection-safe ``count()``
 # ---------------------------------------------------------------------------
 
-ALLOWED_TABLES: frozenset[str] = frozenset({
-    "projects", "runs", "trials", "verdicts",
-    "coverage", "fingerprints", "gate_decisions", "costs",
-})
+ALLOWED_TABLES: frozenset[str] = frozenset(
+    {
+        "projects",
+        "runs",
+        "trials",
+        "verdicts",
+        "coverage",
+        "fingerprints",
+        "gate_decisions",
+        "costs",
+    }
+)
 
 
 # ---------------------------------------------------------------------------

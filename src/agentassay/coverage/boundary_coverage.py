@@ -55,25 +55,17 @@ class BoundaryCoverageTracker:
 
     __slots__ = ("_boundaries", "_observations")
 
-    def __init__(
-        self, boundaries: dict[str, tuple[float, float]] | None = None
-    ) -> None:
+    def __init__(self, boundaries: dict[str, tuple[float, float]] | None = None) -> None:
         boundaries = boundaries or {}
         for name, (lo, hi) in boundaries.items():
             if not (math.isfinite(lo) and math.isfinite(hi)):
-                raise ValueError(
-                    f"Boundary '{name}' has non-finite values: ({lo}, {hi})"
-                )
+                raise ValueError(f"Boundary '{name}' has non-finite values: ({lo}, {hi})")
             if lo >= hi:
-                raise ValueError(
-                    f"Boundary '{name}' has min >= max: ({lo}, {hi})"
-                )
+                raise ValueError(f"Boundary '{name}' has min >= max: ({lo}, {hi})")
         # Store as (min, max) tuples
         self._boundaries: dict[str, tuple[float, float]] = dict(boundaries)
         # Per-boundary: list of all observed numeric values
-        self._observations: dict[str, list[float]] = {
-            name: [] for name in self._boundaries
-        }
+        self._observations: dict[str, list[float]] = {name: [] for name in self._boundaries}
 
     # ------------------------------------------------------------------
     # Internal
@@ -225,8 +217,4 @@ class BoundaryCoverageTracker:
 
     def __repr__(self) -> str:
         ratio = self.coverage_ratio()
-        return (
-            f"BoundaryCoverageTracker("
-            f"coverage={ratio:.2%}, "
-            f"boundaries={len(self._boundaries)})"
-        )
+        return f"BoundaryCoverageTracker(coverage={ratio:.2%}, boundaries={len(self._boundaries)})"

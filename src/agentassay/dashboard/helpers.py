@@ -14,8 +14,8 @@ from __future__ import annotations
 
 from typing import Any
 
-
 # ── Formatting helpers ─────────────────────────────────────────────────
+
 
 def format_pass_rate(rate: float | None) -> str:
     """Format a pass rate as a coloured percentage string.
@@ -108,6 +108,7 @@ def status_badge(status: str | None) -> str:
 
 
 # ── Reusable Streamlit components ──────────────────────────────────────
+
 
 def empty_state(message: str) -> None:
     """Render a centred empty-state message inside a Streamlit container.

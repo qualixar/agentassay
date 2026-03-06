@@ -11,7 +11,6 @@ from __future__ import annotations
 
 import random
 import uuid
-from datetime import datetime, timezone
 from typing import Any
 
 import pytest
@@ -22,9 +21,7 @@ from agentassay.core.models import (
     ExecutionTrace,
     StepTrace,
     TestScenario,
-    TrialResult,
 )
-
 
 # ===================================================================
 # Helper factories
@@ -263,9 +260,7 @@ def flaky_agent(
     """A mock agent that passes with the given probability."""
     if random.random() < pass_rate:
         return make_trace(steps=3, success=True, input_data=input_data)
-    return make_trace(
-        steps=1, success=False, input_data=input_data, error="Flaky failure"
-    )
+    return make_trace(steps=1, success=False, input_data=input_data, error="Flaky failure")
 
 
 def raising_agent(input_data: dict[str, Any]) -> ExecutionTrace:
@@ -273,9 +268,7 @@ def raising_agent(input_data: dict[str, Any]) -> ExecutionTrace:
     raise RuntimeError("Agent crashed")
 
 
-def mutation_agent(
-    config: AgentConfig, input_data: dict[str, Any]
-) -> ExecutionTrace:
+def mutation_agent(config: AgentConfig, input_data: dict[str, Any]) -> ExecutionTrace:
     """A mock agent for mutation runner (accepts config + input_data)."""
     return make_trace(
         steps=2,
@@ -288,9 +281,7 @@ def mutation_agent(
     )
 
 
-def mutation_agent_sensitive(
-    config: AgentConfig, input_data: dict[str, Any]
-) -> ExecutionTrace:
+def mutation_agent_sensitive(config: AgentConfig, input_data: dict[str, Any]) -> ExecutionTrace:
     """A mock agent that fails when mutated (model is not 'test-model')."""
     is_original = config.model == "test-model"
     return make_trace(

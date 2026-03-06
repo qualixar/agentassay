@@ -38,10 +38,7 @@ from agentassay.integrations.base import (
 
 logger = logging.getLogger(__name__)
 
-_INSTALL_HINT = (
-    "CrewAI adapter requires crewai. "
-    "Install with: pip install agentassay[crewai]"
-)
+_INSTALL_HINT = "CrewAI adapter requires crewai. Install with: pip install agentassay[crewai]"
 
 
 def _check_crewai_installed() -> None:
@@ -162,9 +159,7 @@ class CrewAIAdapter(AgentAdapter):
 
     # -- Internal: step extraction --------------------------------------------
 
-    def _extract_steps(
-        self, result: Any, total_kickoff_ms: float
-    ) -> list[StepTrace]:
+    def _extract_steps(self, result: Any, total_kickoff_ms: float) -> list[StepTrace]:
         """Extract StepTrace objects from a CrewAI kickoff result.
 
         CrewAI's ``CrewOutput`` (v0.80+) exposes ``tasks_output`` — a list
@@ -193,9 +188,7 @@ class CrewAIAdapter(AgentAdapter):
                         model=self._model,
                         metadata={
                             "crewai_task_index": idx,
-                            "crewai_agent": getattr(
-                                task_out, "agent", "unknown"
-                            ),
+                            "crewai_agent": getattr(task_out, "agent", "unknown"),
                         },
                         **step_kwargs,
                     )
@@ -216,9 +209,7 @@ class CrewAIAdapter(AgentAdapter):
         return steps
 
     @staticmethod
-    def _classify_task_output(
-        task_out: Any, index: int
-    ) -> tuple[str, dict[str, Any]]:
+    def _classify_task_output(task_out: Any, index: int) -> tuple[str, dict[str, Any]]:
         """Classify a CrewAI TaskOutput into a StepTrace action."""
         extra: dict[str, Any] = {}
 
@@ -230,9 +221,7 @@ class CrewAIAdapter(AgentAdapter):
         # CrewAI tasks with tools will have tool_calls in their execution log
         tools_used = getattr(task_out, "tools_used", None)
         if tools_used:
-            extra["tool_name"] = (
-                tools_used[0] if isinstance(tools_used, list) else str(tools_used)
-            )
+            extra["tool_name"] = tools_used[0] if isinstance(tools_used, list) else str(tools_used)
             extra["tool_input"] = {"description": str(description)[:200]}
             extra["tool_output"] = str(raw_output)[:500] if raw_output else None
             return "tool_call", extra

@@ -11,7 +11,6 @@ Target: 15+ tests.
 from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
-from typing import Any
 
 import pytest
 

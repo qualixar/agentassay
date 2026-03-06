@@ -26,15 +26,14 @@ from agentassay.dashboard.helpers import (
 from agentassay.persistence import QueryAPI
 from agentassay.persistence.storage import ResultStore
 
-
 # ── Color scale (green → yellow → orange → red) ───────────────────────
 
 _HEATMAP_COLORSCALE: list[list[Any]] = [
-    [0.0, "#d32f2f"],      # red     (< 0.5)
-    [0.5, "#ff9800"],      # orange  (0.5)
-    [0.7, "#fdd835"],      # yellow  (0.7)
-    [0.9, "#66bb6a"],      # green   (0.9)
-    [1.0, "#2e7d32"],      # dark green (1.0)
+    [0.0, "#d32f2f"],  # red     (< 0.5)
+    [0.5, "#ff9800"],  # orange  (0.5)
+    [0.7, "#fdd835"],  # yellow  (0.7)
+    [0.9, "#66bb6a"],  # green   (0.9)
+    [1.0, "#2e7d32"],  # dark green (1.0)
 ]
 
 
@@ -52,9 +51,7 @@ def render_fingerprints(query_api: QueryAPI, store: ResultStore) -> None:
 
     runs = query_api.list_runs(limit=30)
     if not runs:
-        empty_state(
-            "No test runs yet. Run <code>agentassay run</code> to get started."
-        )
+        empty_state("No test runs yet. Run <code>agentassay run</code> to get started.")
         return
 
     # Check if any run has fingerprint data
@@ -75,8 +72,7 @@ def render_fingerprints(query_api: QueryAPI, store: ResultStore) -> None:
     # ── Run selectors ──────────────────────────────────────────────────
 
     run_labels = [
-        f"{r['agent_name']} / {r['model']} — {_short_ts(r.get('started_at'))}"
-        for r in runs
+        f"{r['agent_name']} / {r['model']} — {_short_ts(r.get('started_at'))}" for r in runs
     ]
 
     c1, c2 = st.columns(2)
@@ -145,9 +141,7 @@ def _render_dual_heatmaps(
         st.subheader("Candidate Fingerprint")
         fps = store.get_fingerprints(candidate_run["id"])
         if fps:
-            fig = _build_heatmap(
-                fps, f"Candidate: {candidate_run['agent_name']}"
-            )
+            fig = _build_heatmap(fps, f"Candidate: {candidate_run['agent_name']}")
             st.plotly_chart(fig, width="stretch")
         else:
             empty_state("No fingerprint data for the candidate run.")
@@ -161,17 +155,13 @@ def _render_comparison(
     """Difference heatmap: candidate minus baseline."""
     st.subheader("Fingerprint Comparison")
 
-    comparison = query_api.get_fingerprint_comparison(
-        baseline_run["id"], candidate_run["id"]
-    )
+    comparison = query_api.get_fingerprint_comparison(baseline_run["id"], candidate_run["id"])
 
     baseline_fps = comparison.get("baseline", [])
     candidate_fps = comparison.get("candidate", [])
 
     if not baseline_fps or not candidate_fps:
-        empty_state(
-            "Both runs must have fingerprint data for comparison."
-        )
+        empty_state("Both runs must have fingerprint data for comparison.")
         return
 
     # Build scenario-indexed dictionaries
@@ -202,9 +192,7 @@ def _render_drift_summary(
     """Summary statistics of behavioral drift between runs."""
     st.subheader("Drift Summary")
 
-    comparison = query_api.get_fingerprint_comparison(
-        baseline_run["id"], candidate_run["id"]
-    )
+    comparison = query_api.get_fingerprint_comparison(baseline_run["id"], candidate_run["id"])
 
     baseline_fps = comparison.get("baseline", [])
     candidate_fps = comparison.get("candidate", [])
@@ -248,9 +236,7 @@ def _render_drift_summary(
 # ── Heatmap builders ───────────────────────────────────────────────────
 
 
-def _build_heatmap(
-    fingerprints: list[dict[str, Any]], title: str
-) -> Any:
+def _build_heatmap(fingerprints: list[dict[str, Any]], title: str) -> Any:
     """Build a Plotly heatmap from fingerprint records.
 
     Rows = behavioral dimensions, Columns = scenarios.
@@ -403,7 +389,7 @@ def _l2_distance(a: list[float], b: list[float]) -> float:
         va = a[i] if i < len(a) else 0.0
         vb = b[i] if i < len(b) else 0.0
         total += (va - vb) ** 2
-    return total ** 0.5
+    return total**0.5
 
 
 def _cosine_similarity(a: list[float], b: list[float]) -> float:
@@ -421,7 +407,7 @@ def _cosine_similarity(a: list[float], b: list[float]) -> float:
 
     if mag_a == 0.0 or mag_b == 0.0:
         return 0.0
-    return dot / (mag_a ** 0.5 * mag_b ** 0.5)
+    return dot / (mag_a**0.5 * mag_b**0.5)
 
 
 def _max_abs_delta(a: list[float], b: list[float]) -> float:

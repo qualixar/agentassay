@@ -383,10 +383,7 @@ class TrialRunner:
         results: list[TrialResult] = []
 
         with ThreadPoolExecutor(max_workers=max_workers) as pool:
-            futures = {
-                pool.submit(self.run_trial, scenario): i
-                for i in range(n)
-            }
+            futures = {pool.submit(self.run_trial, scenario): i for i in range(n)}
             for future in as_completed(futures):
                 idx = futures[future]
                 try:
@@ -394,8 +391,7 @@ class TrialRunner:
                     results.append(result)
                 except CostBudgetExceededError:
                     logger.warning(
-                        "Cost budget exhausted at trial %d/%d — "
-                        "stopping remaining trials.",
+                        "Cost budget exhausted at trial %d/%d — stopping remaining trials.",
                         len(results),
                         n,
                     )

@@ -19,10 +19,13 @@ from agentassay.statistics.hypothesis import (
 )
 from agentassay.statistics.hypothesis_legacy import (
     HypothesisResult,
+)
+from agentassay.statistics.hypothesis_legacy import (
     test_binary_regression as binary_regression_fn,
+)
+from agentassay.statistics.hypothesis_legacy import (
     test_score_regression as score_regression_fn,
 )
-
 
 # ===================================================================
 # Fisher exact (structured API)

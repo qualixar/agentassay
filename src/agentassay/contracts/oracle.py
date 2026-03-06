@@ -34,6 +34,7 @@ logger = logging.getLogger(__name__)
 _HAS_AGENTASSERT = False
 try:
     import agentassert  # noqa: F401
+
     _HAS_AGENTASSERT = True
 except ImportError:
     pass
@@ -41,18 +42,15 @@ except ImportError:
 # Re-export parser internals for backward compatibility (private API)
 from agentassay.contracts.parser import (  # noqa: F401, E402
     _BARE_IDENT_RE,
-    _call_builtin,
     _COMPARISON_OPS,
     _COMPARISON_RE,
-    _evaluate_comparison,
     _FUNC_CALL_RE,
     _NOT_BARE_RE,
     _NOT_FUNC_RE,
+    _call_builtin,
+    _evaluate_comparison,
     _resolve_value,
-    build_trace_context as _build_trace_context,
-    evaluate_condition as _evaluate_condition,
 )
-
 
 # ===================================================================
 # ContractOracle
@@ -81,13 +79,9 @@ class ContractOracle:
         contract_dict: dict[str, Any] | None = None,
     ) -> None:
         if contract_path is not None and contract_dict is not None:
-            raise ValueError(
-                "Provide either contract_path or contract_dict, not both"
-            )
+            raise ValueError("Provide either contract_path or contract_dict, not both")
         if contract_path is None and contract_dict is None:
-            raise ValueError(
-                "Provide either contract_path or contract_dict"
-            )
+            raise ValueError("Provide either contract_path or contract_dict")
 
         if contract_path is not None:
             self._contract_data = ContractLoader.load_yaml(contract_path)
@@ -159,21 +153,15 @@ class ContractOracle:
                     trace, context, c_name, c_condition, c_severity, violations
                 )
             elif c_type == "invariant":
-                self._check_invariant(
-                    trace, context, c_name, c_condition, c_severity, violations
-                )
+                self._check_invariant(trace, context, c_name, c_condition, c_severity, violations)
             elif c_type == "guardrail":
-                self._check_guardrail(
-                    trace, context, c_name, c_condition, c_severity, violations
-                )
+                self._check_guardrail(trace, context, c_name, c_condition, c_severity, violations)
 
         # --- Compute score ---
         score = self._compute_score(violations)
 
         # --- Pass/fail: hard violations cause failure ---
-        has_hard_violations = any(
-            v.severity == "hard" for v in violations
-        )
+        has_hard_violations = any(v.severity == "hard" for v in violations)
 
         return ContractEvaluation(
             contract_name=self._contract_name,

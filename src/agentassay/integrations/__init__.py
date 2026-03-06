@@ -30,25 +30,24 @@ from __future__ import annotations
 
 from typing import Any
 
+from agentassay.integrations.autogen_adapter import AutoGenAdapter
 from agentassay.integrations.base import (
     AdapterError,
     AgentAdapter,
     FrameworkNotInstalledError,
 )
+from agentassay.integrations.bedrock_adapter import BedrockAgentsAdapter
+from agentassay.integrations.crewai_adapter import CrewAIAdapter
 from agentassay.integrations.custom_adapter import CustomAdapter
 
 # Framework adapters — imported at module level so they appear in
 # autocomplete, but their framework dependencies are lazy.
 from agentassay.integrations.langgraph_adapter import LangGraphAdapter
-from agentassay.integrations.crewai_adapter import CrewAIAdapter
-from agentassay.integrations.openai_adapter import OpenAIAgentsAdapter
-from agentassay.integrations.autogen_adapter import AutoGenAdapter
-from agentassay.integrations.smolagents_adapter import SmolAgentsAdapter
-from agentassay.integrations.semantic_kernel_adapter import SemanticKernelAdapter
-from agentassay.integrations.bedrock_adapter import BedrockAgentsAdapter
 from agentassay.integrations.mcp_adapter import MCPToolsAdapter
+from agentassay.integrations.openai_adapter import OpenAIAgentsAdapter
+from agentassay.integrations.semantic_kernel_adapter import SemanticKernelAdapter
+from agentassay.integrations.smolagents_adapter import SmolAgentsAdapter
 from agentassay.integrations.vertex_adapter import VertexAIAgentsAdapter
-
 
 # ── Registry: framework name → adapter class ──────────────────────────
 _ADAPTER_REGISTRY: dict[str, type[AgentAdapter]] = {

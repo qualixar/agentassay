@@ -12,11 +12,9 @@ Target: 15+ tests.
 from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
-from typing import Any
 
 import pytest
 
-from agentassay.core.models import ExecutionTrace
 from agentassay.integrations.base import FrameworkNotInstalledError
 from agentassay.integrations.openai_adapter import (
     OpenAIAgentsAdapter,
@@ -33,9 +31,7 @@ def _make_mock_agent(model: str = "gpt-4o", name: str = "agent") -> MagicMock:
 
 
 def _patch_openai():
-    return patch(
-        "agentassay.integrations.openai_adapter._check_openai_agents_installed"
-    )
+    return patch("agentassay.integrations.openai_adapter._check_openai_agents_installed")
 
 
 class TestInstallCheck:
@@ -106,7 +102,6 @@ class TestItemClassification:
 
     def test_tool_call_with_string_arguments_parsed(self):
         from agentassay.integrations.openai_adapter import OpenAIAgentsAdapter
-        import json
 
         item = MagicMock()
         item.__class__.__name__ = "ToolCallItem"

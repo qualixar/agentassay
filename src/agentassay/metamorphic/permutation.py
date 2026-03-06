@@ -58,8 +58,7 @@ class InputPermutationRelation(MetamorphicRelation):
             name="input_permutation",
             family="permutation",
             description=(
-                "Reorder items/sections in the input; output should "
-                "be semantically equivalent."
+                "Reorder items/sections in the input; output should be semantically equivalent."
             ),
             seed=seed,
         )

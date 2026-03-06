@@ -64,8 +64,7 @@ class ConsistencyRelation(MetamorphicRelation):
             name="consistency",
             family="oracle",
             description=(
-                "Run the same input multiple times; outputs should be "
-                "consistent above a threshold."
+                "Run the same input multiple times; outputs should be consistent above a threshold."
             ),
             seed=seed,
         )
@@ -92,9 +91,7 @@ class ConsistencyRelation(MetamorphicRelation):
             details={
                 "threshold": self.threshold,
                 "transform": "identity",
-                "exact_match": _exact_match(
-                    source_trace.output_data, followup_trace.output_data
-                ),
+                "exact_match": _exact_match(source_trace.output_data, followup_trace.output_data),
             },
         )
 
@@ -186,9 +183,7 @@ class MonotonicityRelation(MetamorphicRelation):
         )
 
         if text_key and isinstance(data[text_key], str):
-            data[text_key] = (
-                data[text_key] + "\n\nAdditional context: " + self.additional_context
-            )
+            data[text_key] = data[text_key] + "\n\nAdditional context: " + self.additional_context
             return _deep_copy_scenario(scenario, input_data=data)
 
         # If no text key, add as a separate field

@@ -24,24 +24,24 @@ Usage
 """
 
 from agentassay.mutation.operators import (
-    # Abstract base
-    MutationOperator,
-    # Prompt operators (M_prompt)
-    PromptSynonymMutator,
-    PromptOrderMutator,
-    PromptNoiseMutator,
-    PromptDropMutator,
-    # Tool operators (M_tool)
-    ToolRemovalMutator,
-    ToolReorderMutator,
-    ToolNoiseMutator,
+    ContextNoiseMutator,
+    ContextPermutationMutator,
+    # Context operators (M_context)
+    ContextTruncationMutator,
     # Model operators (M_model)
     ModelSwapMutator,
     ModelVersionMutator,
-    # Context operators (M_context)
-    ContextTruncationMutator,
-    ContextNoiseMutator,
-    ContextPermutationMutator,
+    # Abstract base
+    MutationOperator,
+    PromptDropMutator,
+    PromptNoiseMutator,
+    PromptOrderMutator,
+    # Prompt operators (M_prompt)
+    PromptSynonymMutator,
+    ToolNoiseMutator,
+    # Tool operators (M_tool)
+    ToolRemovalMutator,
+    ToolReorderMutator,
 )
 from agentassay.mutation.runner import (
     DEFAULT_OPERATORS,

@@ -28,6 +28,17 @@ from agentassay.metamorphic.base import (  # noqa: F401
     _text_similarity,
 )
 
+# Family 3: Composition
+from agentassay.metamorphic.composition import (  # noqa: F401
+    DecompositionRelation,
+)
+
+# Family 4: Oracle
+from agentassay.metamorphic.oracle import (  # noqa: F401
+    ConsistencyRelation,
+    MonotonicityRelation,
+)
+
 # Family 1: Permutation
 from agentassay.metamorphic.permutation import (  # noqa: F401
     InputPermutationRelation,
@@ -38,17 +49,6 @@ from agentassay.metamorphic.permutation import (  # noqa: F401
 from agentassay.metamorphic.perturbation import (  # noqa: F401
     IrrelevantAdditionRelation,
     TypographicalPerturbation,
-)
-
-# Family 3: Composition
-from agentassay.metamorphic.composition import (  # noqa: F401
-    DecompositionRelation,
-)
-
-# Family 4: Oracle
-from agentassay.metamorphic.oracle import (  # noqa: F401
-    ConsistencyRelation,
-    MonotonicityRelation,
 )
 
 __all__ = [

@@ -39,8 +39,7 @@ from agentassay.integrations.base import (
 logger = logging.getLogger(__name__)
 
 _INSTALL_HINT = (
-    "AutoGen adapter requires autogen-agentchat. "
-    "Install with: pip install agentassay[autogen]"
+    "AutoGen adapter requires autogen-agentchat. Install with: pip install agentassay[autogen]"
 )
 
 
@@ -104,9 +103,7 @@ class AutoGenAdapter(AgentAdapter):
         if resolved_name is None:
             resolved_name = getattr(agent, "name", None) or "autogen-agent"
 
-        super().__init__(
-            model=resolved_model, agent_name=resolved_name, metadata=metadata
-        )
+        super().__init__(model=resolved_model, agent_name=resolved_name, metadata=metadata)
         self._agent = agent
         self._user_proxy = user_proxy
 
@@ -189,18 +186,14 @@ class AutoGenAdapter(AgentAdapter):
 
     # -- Internal: execution strategies ---------------------------------------
 
-    def _execute_agent(
-        self, message: str
-    ) -> tuple[list[StepTrace], Any]:
+    def _execute_agent(self, message: str) -> tuple[list[StepTrace], Any]:
         """Try available execution strategies and return steps + output."""
         # Strategy 1: Modern AutoGen v0.4+ run() method
         if hasattr(self._agent, "run"):
             return self._run_modern(message)
 
         # Strategy 2: Legacy initiate_chat pattern
-        if self._user_proxy is not None and hasattr(
-            self._user_proxy, "initiate_chat"
-        ):
+        if self._user_proxy is not None and hasattr(self._user_proxy, "initiate_chat"):
             return self._run_initiate_chat(message)
 
         # Strategy 3: Single-turn generate_reply fallback
@@ -212,9 +205,7 @@ class AutoGenAdapter(AgentAdapter):
             "execution method (run, initiate_chat, or generate_reply)."
         )
 
-    def _run_modern(
-        self, message: str
-    ) -> tuple[list[StepTrace], Any]:
+    def _run_modern(self, message: str) -> tuple[list[StepTrace], Any]:
         """Execute using AutoGen v0.4+ ``run()`` or ``run_sync()``."""
         step_start = time.perf_counter()
 
@@ -233,9 +224,7 @@ class AutoGenAdapter(AgentAdapter):
                 import concurrent.futures
 
                 with concurrent.futures.ThreadPoolExecutor() as pool:
-                    result = pool.submit(
-                        asyncio.run, self._agent.run(task=message)
-                    ).result()
+                    result = pool.submit(asyncio.run, self._agent.run(task=message)).result()
             else:
                 result = asyncio.run(self._agent.run(task=message))
 
@@ -243,21 +232,15 @@ class AutoGenAdapter(AgentAdapter):
         steps, output = self._extract_from_result(result, duration_ms)
         return steps, output
 
-    def _run_initiate_chat(
-        self, message: str
-    ) -> tuple[list[StepTrace], Any]:
+    def _run_initiate_chat(self, message: str) -> tuple[list[StepTrace], Any]:
         """Execute using legacy ``initiate_chat()`` pattern."""
         step_start = time.perf_counter()
-        chat_result = self._user_proxy.initiate_chat(
-            self._agent, message=message
-        )
+        chat_result = self._user_proxy.initiate_chat(self._agent, message=message)
         duration_ms = (time.perf_counter() - step_start) * 1000.0
 
         return self._extract_from_chat_history(chat_result, duration_ms)
 
-    def _run_generate_reply(
-        self, message: str
-    ) -> tuple[list[StepTrace], Any]:
+    def _run_generate_reply(self, message: str) -> tuple[list[StepTrace], Any]:
         """Execute using single-turn ``generate_reply()``."""
         step_start = time.perf_counter()
         messages = [{"role": "user", "content": message}]
@@ -280,9 +263,7 @@ class AutoGenAdapter(AgentAdapter):
 
     # -- Internal: result extraction ------------------------------------------
 
-    def _extract_from_result(
-        self, result: Any, total_ms: float
-    ) -> tuple[list[StepTrace], Any]:
+    def _extract_from_result(self, result: Any, total_ms: float) -> tuple[list[StepTrace], Any]:
         """Extract steps from a modern AutoGen RunResult / TaskResult."""
         steps: list[StepTrace] = []
 
@@ -309,9 +290,7 @@ class AutoGenAdapter(AgentAdapter):
                 )
 
             # Final output from last assistant message
-            output = getattr(result, "output", None) or (
-                str(messages[-1]) if messages else None
-            )
+            output = getattr(result, "output", None) or (str(messages[-1]) if messages else None)
             return steps, output
 
         # Fallback single step
@@ -339,9 +318,7 @@ class AutoGenAdapter(AgentAdapter):
         if not history:
             # Try the agent's own chat_messages
             if self._user_proxy is not None:
-                history = getattr(
-                    self._user_proxy, "chat_messages", {}
-                ).get(self._agent, [])
+                history = getattr(self._user_proxy, "chat_messages", {}).get(self._agent, [])
 
         if history and isinstance(history, (list, tuple)):
             num_msgs = len(history)
@@ -402,6 +379,7 @@ class AutoGenAdapter(AgentAdapter):
                     if isinstance(extra["tool_input"], str):
                         try:
                             import json
+
                             extra["tool_input"] = json.loads(extra["tool_input"])
                         except (ValueError, TypeError):
                             extra["tool_input"] = {"raw": extra["tool_input"]}
@@ -455,11 +433,7 @@ class AutoGenAdapter(AgentAdapter):
             if key in input_data:
                 return str(input_data[key])
 
-        filtered = {
-            k: v
-            for k, v in input_data.items()
-            if k not in ("scenario_id", "metadata")
-        }
+        filtered = {k: v for k, v in input_data.items() if k not in ("scenario_id", "metadata")}
         if len(filtered) == 1:
             return str(next(iter(filtered.values())))
 

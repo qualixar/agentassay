@@ -16,9 +16,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from agentassay.core.models import ExecutionTrace, StepTrace
+from agentassay.core.models import ExecutionTrace
 from agentassay.integrations.base import FrameworkNotInstalledError
-
 
 # ===================================================================
 # Helpers
@@ -140,9 +139,11 @@ class TestBedrockAgentsAdapter:
         adapter = _make_adapter()
 
         mock_client = MagicMock()
-        mock_client.invoke_agent.return_value = _mock_invoke_agent_response([
-            _make_chunk_event("The capital of France is Paris."),
-        ])
+        mock_client.invoke_agent.return_value = _mock_invoke_agent_response(
+            [
+                _make_chunk_event("The capital of France is Paris."),
+            ]
+        )
         adapter._client = mock_client
 
         trace = adapter.run({"query": "What is the capital of France?"})
@@ -162,12 +163,16 @@ class TestBedrockAgentsAdapter:
         adapter = _make_adapter()
 
         mock_client = MagicMock()
-        mock_client.invoke_agent.return_value = _mock_invoke_agent_response([
-            _make_trace_event({
-                "rationale": {"text": "I need to look up the order details."},
-            }),
-            _make_chunk_event("Order #123 is shipped."),
-        ])
+        mock_client.invoke_agent.return_value = _mock_invoke_agent_response(
+            [
+                _make_trace_event(
+                    {
+                        "rationale": {"text": "I need to look up the order details."},
+                    }
+                ),
+                _make_chunk_event("Order #123 is shipped."),
+            ]
+        )
         adapter._client = mock_client
 
         trace = adapter.run({"query": "Check order 123"})
@@ -186,26 +191,32 @@ class TestBedrockAgentsAdapter:
         adapter = _make_adapter()
 
         mock_client = MagicMock()
-        mock_client.invoke_agent.return_value = _mock_invoke_agent_response([
-            _make_trace_event({
-                "invocationInput": {
-                    "invocationType": "ACTION_GROUP",
-                    "actionGroupInvocationInput": {
-                        "actionGroupName": "OrderAPI",
-                        "apiPath": "/getOrder",
-                        "parameters": {"orderId": "123"},
-                    },
-                },
-            }),
-            _make_trace_event({
-                "invocationOutput": {
-                    "actionGroupInvocationOutput": {
-                        "text": '{"status": "shipped", "tracking": "1Z999AA10"}'
-                    },
-                },
-            }),
-            _make_chunk_event("Your order has been shipped."),
-        ])
+        mock_client.invoke_agent.return_value = _mock_invoke_agent_response(
+            [
+                _make_trace_event(
+                    {
+                        "invocationInput": {
+                            "invocationType": "ACTION_GROUP",
+                            "actionGroupInvocationInput": {
+                                "actionGroupName": "OrderAPI",
+                                "apiPath": "/getOrder",
+                                "parameters": {"orderId": "123"},
+                            },
+                        },
+                    }
+                ),
+                _make_trace_event(
+                    {
+                        "invocationOutput": {
+                            "actionGroupInvocationOutput": {
+                                "text": '{"status": "shipped", "tracking": "1Z999AA10"}'
+                            },
+                        },
+                    }
+                ),
+                _make_chunk_event("Your order has been shipped."),
+            ]
+        )
         adapter._client = mock_client
 
         trace = adapter.run({"query": "Where is my order?"})
@@ -224,30 +235,39 @@ class TestBedrockAgentsAdapter:
         adapter = _make_adapter()
 
         mock_client = MagicMock()
-        mock_client.invoke_agent.return_value = _mock_invoke_agent_response([
-            _make_trace_event({
-                "invocationInput": {
-                    "invocationType": "KNOWLEDGE_BASE",
-                    "knowledgeBaseLookupInput": {
-                        "knowledgeBaseId": "KB12345",
-                        "text": "What is the return policy?",
-                    },
-                },
-            }),
-            _make_trace_event({
-                "invocationOutput": {
-                    "knowledgeBaseLookupOutput": {
-                        "retrievedReferences": [
-                            {
-                                "content": {"text": "30-day return policy applies."},
-                                "location": {"type": "S3", "s3Location": {"uri": "s3://docs/policy.pdf"}},
+        mock_client.invoke_agent.return_value = _mock_invoke_agent_response(
+            [
+                _make_trace_event(
+                    {
+                        "invocationInput": {
+                            "invocationType": "KNOWLEDGE_BASE",
+                            "knowledgeBaseLookupInput": {
+                                "knowledgeBaseId": "KB12345",
+                                "text": "What is the return policy?",
                             },
-                        ],
-                    },
-                },
-            }),
-            _make_chunk_event("Our return policy allows returns within 30 days."),
-        ])
+                        },
+                    }
+                ),
+                _make_trace_event(
+                    {
+                        "invocationOutput": {
+                            "knowledgeBaseLookupOutput": {
+                                "retrievedReferences": [
+                                    {
+                                        "content": {"text": "30-day return policy applies."},
+                                        "location": {
+                                            "type": "S3",
+                                            "s3Location": {"uri": "s3://docs/policy.pdf"},
+                                        },
+                                    },
+                                ],
+                            },
+                        },
+                    }
+                ),
+                _make_chunk_event("Our return policy allows returns within 30 days."),
+            ]
+        )
         adapter._client = mock_client
 
         trace = adapter.run({"query": "Return policy?"})
@@ -265,15 +285,19 @@ class TestBedrockAgentsAdapter:
         adapter = _make_adapter()
 
         mock_client = MagicMock()
-        mock_client.invoke_agent.return_value = _mock_invoke_agent_response([
-            _make_trace_event({
-                "observation": {
-                    "type": "FINISH",
-                    "finalResponse": {"text": "Task completed successfully."},
-                },
-            }),
-            _make_chunk_event("Done."),
-        ])
+        mock_client.invoke_agent.return_value = _mock_invoke_agent_response(
+            [
+                _make_trace_event(
+                    {
+                        "observation": {
+                            "type": "FINISH",
+                            "finalResponse": {"text": "Task completed successfully."},
+                        },
+                    }
+                ),
+                _make_chunk_event("Done."),
+            ]
+        )
         adapter._client = mock_client
 
         trace = adapter.run({"query": "Do something"})
@@ -290,13 +314,15 @@ class TestBedrockAgentsAdapter:
         adapter = _make_adapter()
 
         mock_client = MagicMock()
-        mock_client.invoke_agent.return_value = _mock_invoke_agent_response([
-            _make_return_control_event(
-                action_group="InventoryAPI",
-                api_path="/checkStock",
-                parameters={"sku": "WIDGET-001"},
-            ),
-        ])
+        mock_client.invoke_agent.return_value = _mock_invoke_agent_response(
+            [
+                _make_return_control_event(
+                    action_group="InventoryAPI",
+                    api_path="/checkStock",
+                    parameters={"sku": "WIDGET-001"},
+                ),
+            ]
+        )
         adapter._client = mock_client
 
         trace = adapter.run({"query": "Check inventory"})
@@ -358,9 +384,11 @@ class TestBedrockAgentsAdapter:
         adapter = _make_adapter(session_id="my-session-42")
 
         mock_client = MagicMock()
-        mock_client.invoke_agent.return_value = _mock_invoke_agent_response([
-            _make_chunk_event("OK"),
-        ])
+        mock_client.invoke_agent.return_value = _mock_invoke_agent_response(
+            [
+                _make_chunk_event("OK"),
+            ]
+        )
         adapter._client = mock_client
 
         trace = adapter.run({"query": "Continue conversation"})
@@ -375,12 +403,14 @@ class TestBedrockAgentsAdapter:
         adapter = _make_adapter()
 
         mock_client = MagicMock()
-        mock_client.invoke_agent.return_value = _mock_invoke_agent_response([
-            _make_chunk_event("OK"),
-        ])
+        mock_client.invoke_agent.return_value = _mock_invoke_agent_response(
+            [
+                _make_chunk_event("OK"),
+            ]
+        )
         adapter._client = mock_client
 
-        trace = adapter.run({"query": "New conversation"})
+        _trace = adapter.run({"query": "New conversation"})  # noqa: F841 - side effect tested
 
         call_kwargs = mock_client.invoke_agent.call_args[1]
         assert len(call_kwargs["sessionId"]) == 36  # UUID format
@@ -393,9 +423,11 @@ class TestBedrockAgentsAdapter:
         adapter = _make_adapter()
 
         mock_client = MagicMock()
-        mock_client.invoke_agent.return_value = _mock_invoke_agent_response([
-            _make_chunk_event("OK"),
-        ])
+        mock_client.invoke_agent.return_value = _mock_invoke_agent_response(
+            [
+                _make_chunk_event("OK"),
+            ]
+        )
         adapter._client = mock_client
 
         trace = adapter.run({"query": "test", "scenario_id": "ecommerce-1"})
@@ -408,9 +440,11 @@ class TestBedrockAgentsAdapter:
         adapter = _make_adapter()
 
         mock_client = MagicMock()
-        mock_client.invoke_agent.return_value = _mock_invoke_agent_response([
-            _make_chunk_event("OK"),
-        ])
+        mock_client.invoke_agent.return_value = _mock_invoke_agent_response(
+            [
+                _make_chunk_event("OK"),
+            ]
+        )
         adapter._client = mock_client
 
         trace = adapter.run({"query": "test"})
@@ -456,18 +490,14 @@ class TestBedrockAgentsAdapter:
         """_build_user_input uses 'query' key first."""
         from agentassay.integrations.bedrock_adapter import BedrockAgentsAdapter
 
-        result = BedrockAgentsAdapter._build_user_input(
-            {"query": "Hello world", "input": "other"}
-        )
+        result = BedrockAgentsAdapter._build_user_input({"query": "Hello world", "input": "other"})
         assert result == "Hello world"
 
     def test_build_user_input_fallback_to_json(self):
         """_build_user_input serializes to JSON when no known key exists."""
         from agentassay.integrations.bedrock_adapter import BedrockAgentsAdapter
 
-        result = BedrockAgentsAdapter._build_user_input(
-            {"custom_field": "value", "another": 42}
-        )
+        result = BedrockAgentsAdapter._build_user_input({"custom_field": "value", "another": 42})
         assert "custom_field" in result
         assert "42" in result
 
@@ -485,9 +515,8 @@ class TestBedrockAgentsAdapter:
                 mock_boto3,
                 create=True,
             ):
-                # Force reimport path
-                import agentassay.integrations.bedrock_adapter as mod
-                original_import = __builtins__.__import__ if hasattr(__builtins__, '__import__') else __import__
+                # Force reimport path (line left for future use)
+                # noqa: F841 - original_import reserved for future reimport logic
 
                 # Directly test client is None initially
                 assert adapter._client is None
@@ -500,10 +529,12 @@ class TestBedrockAgentsAdapter:
         adapter = _make_adapter()
 
         mock_client = MagicMock()
-        mock_client.invoke_agent.return_value = _mock_invoke_agent_response([
-            _make_chunk_event("Hello "),
-            _make_chunk_event("World!"),
-        ])
+        mock_client.invoke_agent.return_value = _mock_invoke_agent_response(
+            [
+                _make_chunk_event("Hello "),
+                _make_chunk_event("World!"),
+            ]
+        )
         adapter._client = mock_client
 
         trace = adapter.run({"query": "Greet me"})
@@ -519,35 +550,43 @@ class TestBedrockAgentsAdapter:
         adapter = _make_adapter()
 
         mock_client = MagicMock()
-        mock_client.invoke_agent.return_value = _mock_invoke_agent_response([
-            _make_trace_event({
-                "rationale": {"text": "I should check the order status."},
-            }),
-            _make_trace_event({
-                "invocationInput": {
-                    "invocationType": "ACTION_GROUP",
-                    "actionGroupInvocationInput": {
-                        "actionGroupName": "OrderAPI",
-                        "apiPath": "/getStatus",
-                        "parameters": {"id": "456"},
-                    },
-                },
-            }),
-            _make_trace_event({
-                "invocationOutput": {
-                    "actionGroupInvocationOutput": {
-                        "text": '{"status": "delivered"}'
-                    },
-                },
-            }),
-            _make_trace_event({
-                "observation": {
-                    "type": "FINISH",
-                    "finalResponse": {"text": "Order 456 has been delivered."},
-                },
-            }),
-            _make_chunk_event("Your order 456 has been delivered."),
-        ])
+        mock_client.invoke_agent.return_value = _mock_invoke_agent_response(
+            [
+                _make_trace_event(
+                    {
+                        "rationale": {"text": "I should check the order status."},
+                    }
+                ),
+                _make_trace_event(
+                    {
+                        "invocationInput": {
+                            "invocationType": "ACTION_GROUP",
+                            "actionGroupInvocationInput": {
+                                "actionGroupName": "OrderAPI",
+                                "apiPath": "/getStatus",
+                                "parameters": {"id": "456"},
+                            },
+                        },
+                    }
+                ),
+                _make_trace_event(
+                    {
+                        "invocationOutput": {
+                            "actionGroupInvocationOutput": {"text": '{"status": "delivered"}'},
+                        },
+                    }
+                ),
+                _make_trace_event(
+                    {
+                        "observation": {
+                            "type": "FINISH",
+                            "finalResponse": {"text": "Order 456 has been delivered."},
+                        },
+                    }
+                ),
+                _make_chunk_event("Your order 456 has been delivered."),
+            ]
+        )
         adapter._client = mock_client
 
         trace = adapter.run({"query": "Order 456 status?"})
@@ -568,21 +607,27 @@ class TestBedrockAgentsAdapter:
         adapter = _make_adapter()
 
         mock_client = MagicMock()
-        mock_client.invoke_agent.return_value = _mock_invoke_agent_response([
-            _make_trace_event({"rationale": {"text": "Think"}}),
-            _make_trace_event({
-                "invocationInput": {
-                    "invocationType": "ACTION_GROUP",
-                    "actionGroupInvocationInput": {
-                        "actionGroupName": "API",
-                        "apiPath": "/do",
-                        "parameters": {},
-                    },
-                },
-            }),
-            _make_trace_event({"observation": {"type": "FINISH", "finalResponse": {"text": "Done"}}}),
-            _make_chunk_event("OK"),
-        ])
+        mock_client.invoke_agent.return_value = _mock_invoke_agent_response(
+            [
+                _make_trace_event({"rationale": {"text": "Think"}}),
+                _make_trace_event(
+                    {
+                        "invocationInput": {
+                            "invocationType": "ACTION_GROUP",
+                            "actionGroupInvocationInput": {
+                                "actionGroupName": "API",
+                                "apiPath": "/do",
+                                "parameters": {},
+                            },
+                        },
+                    }
+                ),
+                _make_trace_event(
+                    {"observation": {"type": "FINISH", "finalResponse": {"text": "Done"}}}
+                ),
+                _make_chunk_event("OK"),
+            ]
+        )
         adapter._client = mock_client
 
         trace = adapter.run({"query": "test"})

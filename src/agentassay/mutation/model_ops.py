@@ -25,7 +25,6 @@ from agentassay.mutation.base import (
     _deep_copy_scenario,
 )
 
-
 # ---------------------------------------------------------------------------
 # Model family tables for ModelVersionMutator
 # ---------------------------------------------------------------------------

@@ -13,18 +13,17 @@ import numpy as np
 import pytest
 
 from agentassay.core.models import ExecutionTrace
-from agentassay.efficiency.fingerprint import (
-    BehavioralFingerprint,
-)
 from agentassay.efficiency.distribution import (
     FingerprintDistribution,
+)
+from agentassay.efficiency.fingerprint import (
+    BehavioralFingerprint,
 )
 from agentassay.efficiency.regression import (
     fingerprint_regression_test,
 )
 
-from .conftest import make_trace, make_traces, make_regressed_traces
-
+from .conftest import make_regressed_traces, make_trace, make_traces
 
 # ===================================================================
 # BehavioralFingerprint — extraction
@@ -85,27 +84,21 @@ class TestBehavioralFingerprintExtraction:
         ["write", "delete", "deploy"] should yield distinct fingerprints.
         """
         trace_a = make_trace(steps=5, tools=["search", "calculate"], seed=1)
-        trace_b = make_trace(
-            steps=10, tools=["write", "delete"], cost=0.05, seed=2
-        )
+        trace_b = make_trace(steps=10, tools=["write", "delete"], cost=0.05, seed=2)
 
         vec_a = BehavioralFingerprint.from_trace(trace_a).to_vector()
         vec_b = BehavioralFingerprint.from_trace(trace_b).to_vector()
 
         assert not np.array_equal(vec_a, vec_b)
 
-    def test_fingerprint_tool_distribution_sums_to_one(
-        self, tool_heavy_trace: ExecutionTrace
-    ):
+    def test_fingerprint_tool_distribution_sums_to_one(self, tool_heavy_trace: ExecutionTrace):
         """Tool distribution probabilities must form a valid distribution (sum to 1)."""
         fp = BehavioralFingerprint.from_trace(tool_heavy_trace)
 
         total = sum(fp.tool_distribution.values())
         assert total == pytest.approx(1.0, abs=1e-9)
 
-    def test_fingerprint_tool_distribution_all_nonnegative(
-        self, tool_heavy_trace: ExecutionTrace
-    ):
+    def test_fingerprint_tool_distribution_all_nonnegative(self, tool_heavy_trace: ExecutionTrace):
         """Every tool probability must be non-negative."""
         fp = BehavioralFingerprint.from_trace(tool_heavy_trace)
 
@@ -141,9 +134,7 @@ class TestFingerprintDistribution:
         assert isinstance(var, float)
         assert var >= 0.0
 
-    def test_distribution_distance_identical(
-        self, baseline_traces: list[ExecutionTrace]
-    ):
+    def test_distribution_distance_identical(self, baseline_traces: list[ExecutionTrace]):
         """Distance between a distribution and itself should be zero (or near-zero)."""
         fps = [BehavioralFingerprint.from_trace(t) for t in baseline_traces]
         dist = FingerprintDistribution(fps)

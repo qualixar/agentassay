@@ -57,14 +57,17 @@ References:
 
 from __future__ import annotations
 
-import warnings
 from datetime import datetime, timezone
+
 try:
     from enum import StrEnum
 except ImportError:
     from enum import Enum
+
     class StrEnum(str, Enum):  # Python 3.10 compat
         pass
+
+
 from typing import Any
 
 import numpy as np
@@ -140,9 +143,7 @@ class StochasticVerdict(BaseModel):
     effect_size_interpretation: str | None = None
     regression_detected: bool = False
     details: dict[str, Any] = Field(default_factory=dict)
-    timestamp: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc)
-    )
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
     @field_validator("pass_rate_ci")
     @classmethod
@@ -150,8 +151,7 @@ class StochasticVerdict(BaseModel):
         lower, upper = v
         if not (0.0 <= lower <= upper <= 1.0):
             raise ValueError(
-                f"CI bounds must satisfy 0 <= lower <= upper <= 1, "
-                f"got ({lower}, {upper})"
+                f"CI bounds must satisfy 0 <= lower <= upper <= 1, got ({lower}, {upper})"
             )
         return v
 
@@ -159,8 +159,7 @@ class StochasticVerdict(BaseModel):
     def _validate_counts(self) -> StochasticVerdict:
         if self.num_passed > self.num_trials:
             raise ValueError(
-                f"num_passed ({self.num_passed}) cannot exceed "
-                f"num_trials ({self.num_trials})"
+                f"num_passed ({self.num_passed}) cannot exceed num_trials ({self.num_trials})"
             )
         return self
 
@@ -319,19 +318,13 @@ class VerdictFunction:
         # Decision logic per Definition 3.2
         if below_minimum:
             status = VerdictStatus.INCONCLUSIVE
-            reason = (
-                f"Insufficient trials: {n} < {min_required} minimum required"
-            )
+            reason = f"Insufficient trials: {n} < {min_required} minimum required"
         elif ci_lower >= threshold:
             status = VerdictStatus.PASS
-            reason = (
-                f"CI lower bound ({ci_lower:.4f}) >= threshold ({threshold:.4f})"
-            )
+            reason = f"CI lower bound ({ci_lower:.4f}) >= threshold ({threshold:.4f})"
         elif ci_upper < threshold:
             status = VerdictStatus.FAIL
-            reason = (
-                f"CI upper bound ({ci_upper:.4f}) < threshold ({threshold:.4f})"
-            )
+            reason = f"CI upper bound ({ci_upper:.4f}) < threshold ({threshold:.4f})"
         else:
             status = VerdictStatus.INCONCLUSIVE
             reason = (
@@ -397,9 +390,7 @@ class VerdictFunction:
         n_current = len(current_results)
 
         if n_baseline == 0 or n_current == 0:
-            return self._empty_verdict(
-                note="Cannot evaluate regression with empty results"
-            )
+            return self._empty_verdict(note="Cannot evaluate regression with empty results")
 
         k_baseline = sum(baseline_results)
         k_current = sum(current_results)
@@ -542,9 +533,7 @@ class VerdictFunction:
             ValueError: If either score list is empty.
         """
         if len(baseline_scores) == 0 or len(current_scores) == 0:
-            return self._empty_verdict(
-                note="Cannot evaluate scores with empty data"
-            )
+            return self._empty_verdict(note="Cannot evaluate scores with empty data")
 
         baseline_arr = np.asarray(baseline_scores, dtype=np.float64)
         current_arr = np.asarray(current_scores, dtype=np.float64)
@@ -603,15 +592,10 @@ class VerdictFunction:
             )
         elif hyp_result.p_value >= self._alpha:
             status = VerdictStatus.PASS
-            reason = (
-                f"No score regression: p={hyp_result.p_value:.6f} >= "
-                f"alpha={self._alpha}"
-            )
+            reason = f"No score regression: p={hyp_result.p_value:.6f} >= alpha={self._alpha}"
         else:
             status = VerdictStatus.INCONCLUSIVE
-            reason = (
-                f"Ambiguous: p={hyp_result.p_value:.6f}, direction unclear"
-            )
+            reason = f"Ambiguous: p={hyp_result.p_value:.6f}, direction unclear"
 
         return StochasticVerdict(
             status=status,
@@ -631,14 +615,10 @@ class VerdictFunction:
                 "score_test": str(score_method),
                 "baseline_mean": baseline_mean,
                 "baseline_median": baseline_median,
-                "baseline_std": float(np.std(baseline_arr, ddof=1))
-                if n_baseline > 1
-                else 0.0,
+                "baseline_std": float(np.std(baseline_arr, ddof=1)) if n_baseline > 1 else 0.0,
                 "current_mean": current_mean,
                 "current_median": float(np.median(current_arr)),
-                "current_std": float(np.std(current_arr, ddof=1))
-                if n_current > 1
-                else 0.0,
+                "current_std": float(np.std(current_arr, ddof=1)) if n_current > 1 else 0.0,
                 "baseline_samples": n_baseline,
                 "current_samples": n_current,
                 "synthetic_pass_rate_method": "fraction >= baseline median",

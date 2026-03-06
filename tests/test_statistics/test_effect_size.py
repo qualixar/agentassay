@@ -92,23 +92,29 @@ class TestRankBiserial:
 class TestInterpretEffectSize:
     """Tests for interpret_effect_size."""
 
-    @pytest.mark.parametrize("value,expected", [
-        (0.0, "negligible"),
-        (0.1, "negligible"),
-        (0.25, "small"),
-        (0.55, "medium"),
-        (0.85, "large"),
-        (1.5, "large"),
-    ])
+    @pytest.mark.parametrize(
+        "value,expected",
+        [
+            (0.0, "negligible"),
+            (0.1, "negligible"),
+            (0.25, "small"),
+            (0.55, "medium"),
+            (0.85, "large"),
+            (1.5, "large"),
+        ],
+    )
     def test_cohens_h_interpretation(self, value, expected):
         assert interpret_effect_size(value, "cohens_h") == expected
 
-    @pytest.mark.parametrize("value,expected", [
-        (0.0, "negligible"),
-        (0.3, "small"),
-        (0.6, "medium"),
-        (0.9, "large"),
-    ])
+    @pytest.mark.parametrize(
+        "value,expected",
+        [
+            (0.0, "negligible"),
+            (0.3, "small"),
+            (0.6, "medium"),
+            (0.9, "large"),
+        ],
+    )
     def test_glass_delta_interpretation(self, value, expected):
         assert interpret_effect_size(value, "glass_delta") == expected
 

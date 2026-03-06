@@ -39,8 +39,7 @@ from agentassay.integrations.base import (
 logger = logging.getLogger(__name__)
 
 _INSTALL_HINT = (
-    "smolagents adapter requires smolagents. "
-    "Install with: pip install agentassay[smolagents]"
+    "smolagents adapter requires smolagents. Install with: pip install agentassay[smolagents]"
 )
 
 
@@ -84,13 +83,9 @@ class SmolAgentsAdapter(AgentAdapter):
             agent_model = getattr(agent, "model", None)
             if agent_model is not None:
                 # smolagents model objects have a model_id attribute
-                resolved_model = getattr(
-                    agent_model, "model_id", str(agent_model)
-                ) or "unknown"
+                resolved_model = getattr(agent_model, "model_id", str(agent_model)) or "unknown"
 
-        super().__init__(
-            model=resolved_model, agent_name=agent_name, metadata=metadata
-        )
+        super().__init__(model=resolved_model, agent_name=agent_name, metadata=metadata)
         self._agent = agent
 
     # -- Core interface -------------------------------------------------------
@@ -216,9 +211,7 @@ class SmolAgentsAdapter(AgentAdapter):
         step_index = 0
 
         for entry in log_entries:
-            entry_steps = self._classify_log_entry(
-                entry, step_index, per_entry_ms
-            )
+            entry_steps = self._classify_log_entry(entry, step_index, per_entry_ms)
             steps.extend(entry_steps)
             step_index += len(entry_steps)
 
@@ -278,9 +271,7 @@ class SmolAgentsAdapter(AgentAdapter):
                     model=self._model,
                     metadata={
                         "smolagents_step_type": entry_type,
-                        "smolagents_step_number": getattr(
-                            entry, "step_number", current_index
-                        ),
+                        "smolagents_step_number": getattr(entry, "step_number", current_index),
                     },
                 )
             )
@@ -402,11 +393,7 @@ class SmolAgentsAdapter(AgentAdapter):
             if key in input_data:
                 return str(input_data[key])
 
-        filtered = {
-            k: v
-            for k, v in input_data.items()
-            if k not in ("scenario_id", "metadata")
-        }
+        filtered = {k: v for k, v in input_data.items() if k not in ("scenario_id", "metadata")}
         if len(filtered) == 1:
             return str(next(iter(filtered.values())))
 

@@ -8,20 +8,14 @@ Target: 10+ tests.  Max 200 lines.
 
 from __future__ import annotations
 
-from typing import Any
-
 import pytest
 
 from agentassay.plugin.pytest_plugin import (
     MARKER_NAME,
     assert_no_regression,
     assert_pass_rate,
-    assert_verdict_passes,
-    pytest_configure,
 )
-from agentassay.core.models import AssayConfig
 from agentassay.statistics.confidence import ConfidenceInterval
-
 
 # ===================================================================
 # Plugin registration
@@ -51,14 +45,17 @@ class TestPublicImports:
 
     def test_import_assert_no_regression(self) -> None:
         from agentassay.plugin import assert_no_regression as anr
+
         assert callable(anr)
 
     def test_import_assert_pass_rate(self) -> None:
         from agentassay.plugin import assert_pass_rate as apr
+
         assert callable(apr)
 
     def test_import_assert_verdict_passes(self) -> None:
         from agentassay.plugin import assert_verdict_passes as avp
+
         assert callable(avp)
 
 

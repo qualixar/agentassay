@@ -47,13 +47,15 @@ Example:
 from __future__ import annotations
 
 from datetime import datetime, timezone
+
 try:
     from enum import StrEnum
 except ImportError:
     from enum import Enum
+
     class StrEnum(str, Enum):  # Python 3.10 compat
         pass
-from typing import Any
+
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -160,9 +162,7 @@ class GateReport(BaseModel):
     warned_scenarios: int = Field(ge=0)
     skipped_scenarios: int = Field(ge=0)
     config: GateConfig
-    timestamp: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc)
-    )
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
     @property
     def exit_code(self) -> int:
@@ -373,9 +373,7 @@ class DeploymentGate:
             config=self._config,
         )
 
-    def _aggregate_decisions(
-        self, per_scenario: dict[str, GateDecision]
-    ) -> GateDecision:
+    def _aggregate_decisions(self, per_scenario: dict[str, GateDecision]) -> GateDecision:
         """Aggregate per-scenario decisions into an overall decision.
 
         Args:
@@ -405,9 +403,7 @@ class DeploymentGate:
             return GateDecision.WARN
 
         # All remaining scenarios must be DEPLOY or SKIP
-        if all(
-            d in (GateDecision.DEPLOY, GateDecision.SKIP) for d in active_decisions
-        ):
+        if all(d in (GateDecision.DEPLOY, GateDecision.SKIP) for d in active_decisions):
             # If requiring all and some are SKIP, that means insufficient data
             if self._config.require_all_scenarios and GateDecision.SKIP in decisions:
                 return GateDecision.SKIP
@@ -415,9 +411,7 @@ class DeploymentGate:
 
         return GateDecision.SKIP
 
-    def _is_regression_beyond_tolerance(
-        self, verdict: StochasticVerdict
-    ) -> bool:
+    def _is_regression_beyond_tolerance(self, verdict: StochasticVerdict) -> bool:
         """Check if a regression exceeds the configured tolerance.
 
         Args:

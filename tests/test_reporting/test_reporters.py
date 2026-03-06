@@ -10,9 +10,7 @@ from __future__ import annotations
 
 import json
 from io import StringIO
-from typing import Any
 
-import pytest
 from rich.console import Console
 
 from agentassay.core.models import TrialResult
@@ -21,8 +19,7 @@ from agentassay.reporting.html import HTMLReporter
 from agentassay.reporting.json_export import JSONExporter
 
 # Import helpers from conftest (available via pytest path)
-from tests.conftest import make_trace, make_scenario
-
+from tests.conftest import make_trace
 
 # ===================================================================
 # Helpers
@@ -128,10 +125,12 @@ class TestHTMLReporter:
     def test_generate_report_with_trials(self) -> None:
         reporter = HTMLReporter()
         results = _make_trial_results(3)
-        html = reporter.generate_report({
-            "scenario_name": "trial-test",
-            "trial_results": results,
-        })
+        html = reporter.generate_report(
+            {
+                "scenario_name": "trial-test",
+                "trial_results": results,
+            }
+        )
         assert "<!DOCTYPE html>" in html
         assert "trial-test" in html
         # Should contain trial results section
@@ -177,10 +176,12 @@ class TestJSONExporter:
 
     def test_export_full_report_produces_valid_json(self) -> None:
         results = _make_trial_results(5)
-        json_str = JSONExporter.export_full_report({
-            "scenario_name": "json-test",
-            "trial_results": results,
-        })
+        json_str = JSONExporter.export_full_report(
+            {
+                "scenario_name": "json-test",
+                "trial_results": results,
+            }
+        )
         parsed = json.loads(json_str)
         assert isinstance(parsed, dict)
         assert "scenario_name" in parsed

@@ -31,6 +31,19 @@ from agentassay.mutation.base import (  # noqa: F401
     _split_sentences,
 )
 
+# Context operators (M_context)
+from agentassay.mutation.context_ops import (  # noqa: F401
+    ContextNoiseMutator,
+    ContextPermutationMutator,
+    ContextTruncationMutator,
+)
+
+# Model operators (M_model)
+from agentassay.mutation.model_ops import (  # noqa: F401
+    ModelSwapMutator,
+    ModelVersionMutator,
+)
+
 # Prompt operators (M_prompt)
 from agentassay.mutation.prompt_ops import (  # noqa: F401
     PromptDropMutator,
@@ -44,19 +57,6 @@ from agentassay.mutation.tool_ops import (  # noqa: F401
     ToolNoiseMutator,
     ToolRemovalMutator,
     ToolReorderMutator,
-)
-
-# Model operators (M_model)
-from agentassay.mutation.model_ops import (  # noqa: F401
-    ModelSwapMutator,
-    ModelVersionMutator,
-)
-
-# Context operators (M_context)
-from agentassay.mutation.context_ops import (  # noqa: F401
-    ContextNoiseMutator,
-    ContextPermutationMutator,
-    ContextTruncationMutator,
 )
 
 __all__ = [

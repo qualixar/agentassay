@@ -12,14 +12,12 @@ statistical properties, and integration with BehavioralFingerprint class.
 
 from __future__ import annotations
 
-import numpy as np
 import pytest
 
 from agentassay.core.models import ExecutionTrace
 from agentassay.efficiency.fingerprint import BehavioralFingerprint
 from agentassay.efficiency.regression import fingerprint_regression_test
 from tests.conftest import make_trace
-
 
 # ===================================================================
 # Test: Basic regression detection
@@ -36,32 +34,26 @@ class TestBasicRegressionDetection:
         # Candidate: 10 steps per trace (3x increase)
         candidate_traces = [make_trace(steps=10) for _ in range(10)]
 
-        result = fingerprint_regression_test(
-            baseline_traces, candidate_traces, alpha=0.05
-        )
+        result = fingerprint_regression_test(baseline_traces, candidate_traces, alpha=0.05)
 
         assert result["regression_detected"] is True
         assert result["p_value"] < 0.05
         assert result["confidence"] > 0.95
-        assert "step_count" in str(result["changed_dimensions"]).lower() or len(
-            result["changed_dimensions"]
-        ) > 0
+        assert (
+            "step_count" in str(result["changed_dimensions"]).lower()
+            or len(result["changed_dimensions"]) > 0
+        )
 
     def test_regression_detected_when_tool_usage_differs(self):
         """Regression detected when tool usage patterns change."""
         # Baseline: search->calculate pattern
-        baseline_traces = [
-            make_trace(steps=4, tools=["search", "calculate"]) for _ in range(8)
-        ]
+        baseline_traces = [make_trace(steps=4, tools=["search", "calculate"]) for _ in range(8)]
         # Candidate: different tool pattern (filter->validate->select)
         candidate_traces = [
-            make_trace(steps=4, tools=["filter", "validate", "select"])
-            for _ in range(8)
+            make_trace(steps=4, tools=["filter", "validate", "select"]) for _ in range(8)
         ]
 
-        result = fingerprint_regression_test(
-            baseline_traces, candidate_traces, alpha=0.05
-        )
+        result = fingerprint_regression_test(baseline_traces, candidate_traces, alpha=0.05)
 
         assert result["regression_detected"] is True
         assert result["p_value"] < 0.05
@@ -73,9 +65,7 @@ class TestBasicRegressionDetection:
         # Candidate: high cost (10x increase)
         candidate_traces = [make_trace(steps=3, cost=0.10) for _ in range(10)]
 
-        result = fingerprint_regression_test(
-            baseline_traces, candidate_traces, alpha=0.05
-        )
+        result = fingerprint_regression_test(baseline_traces, candidate_traces, alpha=0.05)
 
         # This may or may not detect regression depending on token metadata
         # At minimum, test completes without error
@@ -97,9 +87,7 @@ class TestNoRegressionCases:
         baseline_traces = [make_trace(steps=3, cost=0.01) for _ in range(10)]
         candidate_traces = [make_trace(steps=3, cost=0.01) for _ in range(10)]
 
-        result = fingerprint_regression_test(
-            baseline_traces, candidate_traces, alpha=0.05
-        )
+        result = fingerprint_regression_test(baseline_traces, candidate_traces, alpha=0.05)
 
         assert result["regression_detected"] is False
         assert result["p_value"] >= 0.05
@@ -112,9 +100,7 @@ class TestNoRegressionCases:
         # Candidate: 3-4 steps (same distribution)
         candidate_traces = [make_trace(steps=3 + (i % 2)) for i in range(10)]
 
-        result = fingerprint_regression_test(
-            baseline_traces, candidate_traces, alpha=0.05
-        )
+        result = fingerprint_regression_test(baseline_traces, candidate_traces, alpha=0.05)
 
         assert result["regression_detected"] is False
         assert result["p_value"] >= 0.05
@@ -122,17 +108,13 @@ class TestNoRegressionCases:
     def test_no_regression_with_same_output_patterns(self):
         """No regression when output patterns match."""
         baseline_traces = [
-            make_trace(steps=3, output_data={"result": f"output-{i}"})
-            for i in range(10)
+            make_trace(steps=3, output_data={"result": f"output-{i}"}) for i in range(10)
         ]
         candidate_traces = [
-            make_trace(steps=3, output_data={"result": f"output-{i}"})
-            for i in range(10)
+            make_trace(steps=3, output_data={"result": f"output-{i}"}) for i in range(10)
         ]
 
-        result = fingerprint_regression_test(
-            baseline_traces, candidate_traces, alpha=0.05
-        )
+        result = fingerprint_regression_test(baseline_traces, candidate_traces, alpha=0.05)
 
         # Both have dict outputs with similar structure
         assert result["regression_detected"] is False
@@ -183,9 +165,7 @@ class TestEdgeCases:
         baseline_traces = [make_trace(steps=3), make_trace(steps=3)]
         candidate_traces = [make_trace(steps=10), make_trace(steps=10)]
 
-        result = fingerprint_regression_test(
-            baseline_traces, candidate_traces, alpha=0.05
-        )
+        result = fingerprint_regression_test(baseline_traces, candidate_traces, alpha=0.05)
 
         # Should detect regression (3x step count difference)
         assert result["regression_detected"] is True
@@ -197,9 +177,7 @@ class TestEdgeCases:
         baseline_traces = [make_trace(steps=3) for _ in range(100)]
         candidate_traces = [make_trace(steps=4) for _ in range(100)]
 
-        result = fingerprint_regression_test(
-            baseline_traces, candidate_traces, alpha=0.05
-        )
+        result = fingerprint_regression_test(baseline_traces, candidate_traces, alpha=0.05)
 
         # With 100 samples, even small differences are detectable
         assert isinstance(result["regression_detected"], bool)
@@ -220,9 +198,7 @@ class TestStatisticalProperties:
         baseline_traces = [make_trace(steps=3) for _ in range(10)]
         candidate_traces = [make_trace(steps=5) for _ in range(10)]
 
-        result = fingerprint_regression_test(
-            baseline_traces, candidate_traces, alpha=0.05
-        )
+        result = fingerprint_regression_test(baseline_traces, candidate_traces, alpha=0.05)
 
         assert 0.0 <= result["p_value"] <= 1.0
 
@@ -231,9 +207,7 @@ class TestStatisticalProperties:
         baseline_traces = [make_trace(steps=3) for _ in range(10)]
         candidate_traces = [make_trace(steps=5) for _ in range(10)]
 
-        result = fingerprint_regression_test(
-            baseline_traces, candidate_traces, alpha=0.05
-        )
+        result = fingerprint_regression_test(baseline_traces, candidate_traces, alpha=0.05)
 
         assert abs(result["confidence"] - (1.0 - result["p_value"])) < 1e-9
 
@@ -242,9 +216,7 @@ class TestStatisticalProperties:
         baseline_traces = [make_trace(steps=3) for _ in range(10)]
         candidate_traces = [make_trace(steps=5) for _ in range(10)]
 
-        result = fingerprint_regression_test(
-            baseline_traces, candidate_traces, alpha=0.05
-        )
+        result = fingerprint_regression_test(baseline_traces, candidate_traces, alpha=0.05)
 
         assert result["distance"] >= 0.0
 
@@ -254,15 +226,11 @@ class TestStatisticalProperties:
 
         # Small difference
         candidate_small = [make_trace(steps=4) for _ in range(10)]
-        result_small = fingerprint_regression_test(
-            baseline_traces, candidate_small, alpha=0.05
-        )
+        result_small = fingerprint_regression_test(baseline_traces, candidate_small, alpha=0.05)
 
         # Large difference
         candidate_large = [make_trace(steps=20) for _ in range(10)]
-        result_large = fingerprint_regression_test(
-            baseline_traces, candidate_large, alpha=0.05
-        )
+        result_large = fingerprint_regression_test(baseline_traces, candidate_large, alpha=0.05)
 
         assert result_large["distance"] > result_small["distance"]
 
@@ -271,9 +239,7 @@ class TestStatisticalProperties:
         baseline_traces = [make_trace(steps=3) for _ in range(10)]
         candidate_traces = [make_trace(steps=5) for _ in range(10)]
 
-        result = fingerprint_regression_test(
-            baseline_traces, candidate_traces, alpha=0.05
-        )
+        result = fingerprint_regression_test(baseline_traces, candidate_traces, alpha=0.05)
 
         assert "baseline_variance" in result
         assert "candidate_variance" in result
@@ -285,9 +251,7 @@ class TestStatisticalProperties:
         baseline_traces = [make_trace(steps=3) for _ in range(10)]
         candidate_traces = [make_trace(steps=3) for _ in range(10)]
 
-        result = fingerprint_regression_test(
-            baseline_traces, candidate_traces, alpha=0.05
-        )
+        result = fingerprint_regression_test(baseline_traces, candidate_traces, alpha=0.05)
 
         assert isinstance(result["changed_dimensions"], list)
 
@@ -305,9 +269,7 @@ class TestBehavioralFingerprintIntegration:
         baseline_traces = [make_trace(steps=3) for _ in range(5)]
         candidate_traces = [make_trace(steps=3) for _ in range(5)]
 
-        result = fingerprint_regression_test(
-            baseline_traces, candidate_traces, alpha=0.05
-        )
+        result = fingerprint_regression_test(baseline_traces, candidate_traces, alpha=0.05)
 
         # If we can extract fingerprints manually, verify they match
         baseline_fps = [BehavioralFingerprint.from_trace(t) for t in baseline_traces]
@@ -325,9 +287,7 @@ class TestBehavioralFingerprintIntegration:
             make_trace(steps=3, success=False, error="test error") for _ in range(10)
         ]
 
-        result = fingerprint_regression_test(
-            baseline_traces, candidate_traces, alpha=0.05
-        )
+        result = fingerprint_regression_test(baseline_traces, candidate_traces, alpha=0.05)
 
         # Should detect regression (success patterns differ)
         # At minimum, completes without exception
@@ -338,13 +298,9 @@ class TestBehavioralFingerprintIntegration:
         # Baseline: string outputs
         baseline_traces = [make_trace(steps=3, output_data="text") for _ in range(10)]
         # Candidate: dict outputs
-        candidate_traces = [
-            make_trace(steps=3, output_data={"result": "data"}) for _ in range(10)
-        ]
+        candidate_traces = [make_trace(steps=3, output_data={"result": "data"}) for _ in range(10)]
 
-        result = fingerprint_regression_test(
-            baseline_traces, candidate_traces, alpha=0.05
-        )
+        result = fingerprint_regression_test(baseline_traces, candidate_traces, alpha=0.05)
 
         # Should detect difference in output structure
         assert isinstance(result["regression_detected"], bool)
@@ -364,11 +320,9 @@ class TestCustomAlphaLevels:
         candidate_traces = [make_trace(steps=4) for _ in range(10)]
 
         # Standard alpha
-        result_05 = fingerprint_regression_test(
-            baseline_traces, candidate_traces, alpha=0.05
-        )
+        result_05 = fingerprint_regression_test(baseline_traces, candidate_traces, alpha=0.05)
         # Stricter alpha
-        result_01 = fingerprint_regression_test(
+        _result_01 = fingerprint_regression_test(  # noqa: F841 - computed but not asserted
             baseline_traces, candidate_traces, alpha=0.01
         )
 
@@ -382,9 +336,7 @@ class TestCustomAlphaLevels:
         baseline_traces = [make_trace(steps=3) for _ in range(10)]
         candidate_traces = [make_trace(steps=4) for _ in range(10)]
 
-        result = fingerprint_regression_test(
-            baseline_traces, candidate_traces, alpha=0.10
-        )
+        result = fingerprint_regression_test(baseline_traces, candidate_traces, alpha=0.10)
 
         # With lenient alpha, more likely to detect
         assert isinstance(result["regression_detected"], bool)

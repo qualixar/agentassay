@@ -31,7 +31,6 @@ from agentassay.mutation.base import (
     _split_sentences,
 )
 
-
 # ---------------------------------------------------------------------------
 # Distractor sentences for ContextNoiseMutator
 # ---------------------------------------------------------------------------
@@ -128,11 +127,7 @@ class ContextTruncationMutator(MutationOperator):
 
         # Auto-detect: all string or list keys except prompt/instructions
         skip = {"prompt", "instructions", "system_prompt", "query", "input", "message"}
-        return [
-            k
-            for k, v in input_data.items()
-            if k not in skip and isinstance(v, (str, list))
-        ]
+        return [k for k, v in input_data.items() if k not in skip and isinstance(v, (str, list))]
 
 
 # ===================================================================
@@ -292,9 +287,9 @@ class ContextPermutationMutator(MutationOperator):
         self._num_sections = 0
 
         # Reuse the same resolution logic as ContextNoiseMutator
-        key = ContextNoiseMutator(
-            target_key=self._target_key, seed=None
-        )._resolve_target_key(input_data)
+        key = ContextNoiseMutator(target_key=self._target_key, seed=None)._resolve_target_key(
+            input_data
+        )
 
         if key is None:
             return new_config, _rebuild_scenario(scenario, input_data=input_data)

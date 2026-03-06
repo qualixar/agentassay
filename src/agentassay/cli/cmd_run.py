@@ -12,6 +12,7 @@ them, and displays a Rich-formatted summary of the configuration.
 from __future__ import annotations
 
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any
 
 import click
@@ -23,23 +24,27 @@ from agentassay.cli.helpers import console, load_yaml, write_json
 
 @click.command("run")
 @click.option(
-    "--config", "-c",
+    "--config",
+    "-c",
     type=click.Path(exists=True),
     help="YAML config file with AssayConfig parameters.",
 )
 @click.option(
-    "--scenario", "-s",
+    "--scenario",
+    "-s",
     type=click.Path(exists=True),
     help="YAML scenario file with TestScenario definition.",
 )
 @click.option(
-    "--n", "-n",
+    "--n",
+    "-n",
     type=int,
     default=None,
     help="Number of trials (overrides config).",
 )
 @click.option(
-    "--output", "-o",
+    "--output",
+    "-o",
     type=click.Path(),
     default=None,
     help="Output JSON file for results.",
@@ -65,10 +70,12 @@ def run_command(
         agentassay run --config assay.yaml --scenario qa.yaml -n 50
         agentassay run -c config.yaml -s scenario.yaml -o results.json
     """
-    console.print(Panel.fit(
-        "[bold]AgentAssay[/bold] -- Stochastic Trial Runner",
-        border_style="blue",
-    ))
+    console.print(
+        Panel.fit(
+            "[bold]AgentAssay[/bold] -- Stochastic Trial Runner",
+            border_style="blue",
+        )
+    )
 
     # Load configuration
     assay_kwargs: dict[str, Any] = {}
@@ -109,8 +116,9 @@ def run_command(
         assay_kwargs["num_trials"] = n
 
     try:
-        from agentassay.core.models import AssayConfig as AC
-        assay_cfg = AC(**assay_kwargs)
+        from agentassay.core.models import AssayConfig
+
+        assay_cfg = AssayConfig(**assay_kwargs)
     except Exception:
         raise click.ClickException("Invalid config parameters. Check configuration values.")
 
@@ -136,13 +144,13 @@ def run_command(
         try:
             scenario_data = load_yaml(scenario, "scenario")
             console.print(f"\n[cyan]Scenario:[/cyan] {scenario_data.get('name', 'unnamed')}")
-            console.print(
-                f"[dim]{scenario_data.get('description', 'No description')}[/dim]"
-            )
+            console.print(f"[dim]{scenario_data.get('description', 'No description')}[/dim]")
         except FileNotFoundError:
             raise click.ClickException(f"Scenario file not found: {Path(scenario).name}")
         except Exception:
-            raise click.ClickException("Failed to load scenario. Check file syntax and permissions.")
+            raise click.ClickException(
+                "Failed to load scenario. Check file syntax and permissions."
+            )
 
     console.print()
     console.print(

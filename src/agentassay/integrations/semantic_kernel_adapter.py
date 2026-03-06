@@ -116,9 +116,7 @@ class SemanticKernelAdapter(AgentAdapter):
         agent_name: str | None = None,
         metadata: dict[str, Any] | None = None,
     ) -> None:
-        super().__init__(
-            model=model, agent_name=agent_name, metadata=metadata
-        )
+        super().__init__(model=model, agent_name=agent_name, metadata=metadata)
         self._kernel = kernel
         self._plugin_name = plugin_name
         self._function_name = function_name
@@ -249,9 +247,7 @@ class SemanticKernelAdapter(AgentAdapter):
 
     # -- Internal: kernel invocation ------------------------------------------
 
-    def _invoke_kernel(
-        self, input_data: dict[str, Any]
-    ) -> tuple[list[StepTrace], Any, float]:
+    def _invoke_kernel(self, input_data: dict[str, Any]) -> tuple[list[StepTrace], Any, float]:
         """Execute the kernel function and return steps, output, and cost.
 
         Attempts to use ``FunctionInvocationFilter`` for per-function
@@ -268,7 +264,6 @@ class SemanticKernelAdapter(AgentAdapter):
         tuple[list[StepTrace], Any, float]
             (steps, final_output, total_cost_usd)
         """
-        from semantic_kernel import KernelArguments
 
         # Build KernelArguments from input_data (exclude scenario_id)
         kernel_args = self._build_kernel_arguments(input_data)
@@ -301,9 +296,7 @@ class SemanticKernelAdapter(AgentAdapter):
 
         return steps, output, cost
 
-    def _build_kernel_arguments(
-        self, input_data: dict[str, Any]
-    ) -> Any:
+    def _build_kernel_arguments(self, input_data: dict[str, Any]) -> Any:
         """Build ``KernelArguments`` from the scenario input_data.
 
         Filters out internal keys (``scenario_id``, ``metadata``) and
@@ -321,11 +314,7 @@ class SemanticKernelAdapter(AgentAdapter):
         """
         from semantic_kernel import KernelArguments
 
-        filtered = {
-            k: v
-            for k, v in input_data.items()
-            if k not in ("scenario_id", "metadata")
-        }
+        filtered = {k: v for k, v in input_data.items() if k not in ("scenario_id", "metadata")}
 
         # If there's a single "input" or "query" key, use it as the
         # primary argument for convenience
@@ -368,9 +357,7 @@ class SemanticKernelAdapter(AgentAdapter):
             **invoke_kwargs,
         )
 
-    def _try_register_filter(
-        self, captured_steps: list[dict[str, Any]]
-    ) -> bool:
+    def _try_register_filter(self, captured_steps: list[dict[str, Any]]) -> bool:
         """Attempt to register a FunctionInvocationFilter on the kernel.
 
         The filter captures per-function invocation metadata (name,
@@ -403,38 +390,33 @@ class SemanticKernelAdapter(AgentAdapter):
                 plugin = getattr(context, "plugin_name", None)
                 func_result = getattr(context, "result", None)
 
-                captured_steps.append({
-                    "function_name": func_name,
-                    "plugin_name": plugin,
-                    "duration_ms": duration_ms,
-                    "result": func_result,
-                    "arguments": getattr(context, "arguments", None),
-                })
+                captured_steps.append(
+                    {
+                        "function_name": func_name,
+                        "plugin_name": plugin,
+                        "duration_ms": duration_ms,
+                        "result": func_result,
+                        "arguments": getattr(context, "arguments", None),
+                    }
+                )
                 return result
 
-            self._kernel.add_filter(
-                "function_invocation", _on_function_invocation
-            )
+            self._kernel.add_filter("function_invocation", _on_function_invocation)
             self._active_filter = _on_function_invocation
             return True
 
         except Exception:
             # Filter registration failed — degrade gracefully
             logger.debug(
-                "Could not register FunctionInvocationFilter; "
-                "falling back to single-step trace."
+                "Could not register FunctionInvocationFilter; falling back to single-step trace."
             )
             return False
 
     def _try_unregister_filter(self) -> None:
         """Remove the previously registered filter, if any."""
         try:
-            if hasattr(self, "_active_filter") and hasattr(
-                self._kernel, "remove_filter"
-            ):
-                self._kernel.remove_filter(
-                    "function_invocation", self._active_filter
-                )
+            if hasattr(self, "_active_filter") and hasattr(self._kernel, "remove_filter"):
+                self._kernel.remove_filter("function_invocation", self._active_filter)
         except Exception:
             pass  # Best-effort cleanup
         finally:
@@ -442,9 +424,7 @@ class SemanticKernelAdapter(AgentAdapter):
 
     # -- Internal: step building ----------------------------------------------
 
-    def _build_steps_from_captures(
-        self, captured_steps: list[dict[str, Any]]
-    ) -> list[StepTrace]:
+    def _build_steps_from_captures(self, captured_steps: list[dict[str, Any]]) -> list[StepTrace]:
         """Convert captured filter events into ``StepTrace`` objects.
 
         Parameters
@@ -465,9 +445,7 @@ class SemanticKernelAdapter(AgentAdapter):
             result = capture.get("result")
             arguments = capture.get("arguments")
 
-            action, extra = self._classify_function(
-                func_name, plugin_name, result, arguments
-            )
+            action, extra = self._classify_function(func_name, plugin_name, result, arguments)
 
             step_metadata: dict[str, Any] = {
                 "sk_function": func_name,
@@ -487,9 +465,7 @@ class SemanticKernelAdapter(AgentAdapter):
             )
         return steps
 
-    def _build_fallback_steps(
-        self, result: Any, duration_ms: float
-    ) -> list[StepTrace]:
+    def _build_fallback_steps(self, result: Any, duration_ms: float) -> list[StepTrace]:
         """Build a single-step trace from a ``FunctionResult``.
 
         Used when filter-based capture is unavailable.
@@ -565,9 +541,7 @@ class SemanticKernelAdapter(AgentAdapter):
             ``(action_type, extra_kwargs_for_StepTrace)``
         """
         extra: dict[str, Any] = {}
-        combined_name = (
-            f"{plugin_name}.{func_name}" if plugin_name else func_name
-        ).lower()
+        combined_name = (f"{plugin_name}.{func_name}" if plugin_name else func_name).lower()
 
         # Extract result value as string
         result_str = None
@@ -589,22 +563,38 @@ class SemanticKernelAdapter(AgentAdapter):
 
         # Tool-like function heuristics
         _tool_indicators = (
-            "tool", "search", "calculate", "http", "file", "web",
-            "database", "db", "api", "fetch", "read", "write",
-            "native", "plugin",
+            "tool",
+            "search",
+            "calculate",
+            "http",
+            "file",
+            "web",
+            "database",
+            "db",
+            "api",
+            "fetch",
+            "read",
+            "write",
+            "native",
+            "plugin",
         )
         if any(indicator in combined_name for indicator in _tool_indicators):
-            extra["tool_name"] = (
-                f"{plugin_name}.{func_name}" if plugin_name else func_name
-            )
+            extra["tool_name"] = f"{plugin_name}.{func_name}" if plugin_name else func_name
             extra["tool_input"] = args_dict
             extra["tool_output"] = result_str
             return "tool_call", extra
 
         # LLM-like function heuristics
         _llm_indicators = (
-            "chat", "complete", "generate", "prompt", "semantic",
-            "llm", "gpt", "openai", "azure_chat",
+            "chat",
+            "complete",
+            "generate",
+            "prompt",
+            "semantic",
+            "llm",
+            "gpt",
+            "openai",
+            "azure_chat",
         )
         if any(indicator in combined_name for indicator in _llm_indicators):
             # Extract the input prompt if available

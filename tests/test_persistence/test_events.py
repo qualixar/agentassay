@@ -9,13 +9,9 @@ Target: 12+ tests covering all EventBus methods.
 from __future__ import annotations
 
 import threading
-import time
 from typing import Any
 
-import pytest
-
 from agentassay.persistence.events import EventBus
-
 
 # ===================================================================
 # Basic subscribe / emit

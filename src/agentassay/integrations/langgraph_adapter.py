@@ -29,12 +29,10 @@ import time
 import traceback
 import uuid
 from collections.abc import Callable
-from datetime import datetime, timezone
 from typing import Any
 
 from agentassay.core.models import ExecutionTrace, StepTrace
 from agentassay.integrations.base import (
-    AdapterError,
     AgentAdapter,
     FrameworkNotInstalledError,
 )
@@ -42,8 +40,7 @@ from agentassay.integrations.base import (
 logger = logging.getLogger(__name__)
 
 _INSTALL_HINT = (
-    "LangGraph adapter requires langgraph. "
-    "Install with: pip install agentassay[langgraph]"
+    "LangGraph adapter requires langgraph. Install with: pip install agentassay[langgraph]"
 )
 
 
@@ -184,9 +181,7 @@ class LangGraphAdapter(AgentAdapter):
 
     # -- Internal: streaming execution ----------------------------------------
 
-    def _run_stream(
-        self, input_data: dict[str, Any]
-    ) -> tuple[list[StepTrace], Any]:
+    def _run_stream(self, input_data: dict[str, Any]) -> tuple[list[StepTrace], Any]:
         """Execute via ``graph.stream()`` and collect per-node steps.
 
         Each streamed event is a dict mapping node-name to node-output.
@@ -206,9 +201,7 @@ class LangGraphAdapter(AgentAdapter):
                     last_output = node_output
 
                     # Determine step action from node content
-                    action, step_kwargs = self._classify_node_output(
-                        node_name, node_output
-                    )
+                    action, step_kwargs = self._classify_node_output(node_name, node_output)
 
                     steps.append(
                         StepTrace(
@@ -240,9 +233,7 @@ class LangGraphAdapter(AgentAdapter):
 
     # -- Internal: invoke execution -------------------------------------------
 
-    def _run_invoke(
-        self, input_data: dict[str, Any]
-    ) -> tuple[list[StepTrace], Any]:
+    def _run_invoke(self, input_data: dict[str, Any]) -> tuple[list[StepTrace], Any]:
         """Execute via ``graph.invoke()`` — single step, no streaming."""
         step_start = time.perf_counter()
         result = self._graph.invoke(input_data, config=self._config)
@@ -263,9 +254,7 @@ class LangGraphAdapter(AgentAdapter):
     # -- Internal: heuristic node classification ------------------------------
 
     @staticmethod
-    def _classify_node_output(
-        node_name: str, node_output: Any
-    ) -> tuple[str, dict[str, Any]]:
+    def _classify_node_output(node_name: str, node_output: Any) -> tuple[str, dict[str, Any]]:
         """Classify a LangGraph node output into a StepTrace action type.
 
         Applies heuristics:

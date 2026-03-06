@@ -124,6 +124,10 @@ line-length = 100
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "W", "UP"]
 
+[tool.ruff.lint.per-file-ignores]
+"src/agentassay/reporting/html.py" = ["E501"]  # HTML Jinja2 templates have long lines
+"tests/test_experiments/test_e7_integration.py" = ["N806", "F841"]  # Mock dict lookups, unused test vars
+
 [tool.mypy]
 python_version = "3.10"
 warn_return_any = true

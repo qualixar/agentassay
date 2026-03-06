@@ -46,8 +46,7 @@ from agentassay.integrations.base import (
 logger = logging.getLogger(__name__)
 
 _INSTALL_HINT = (
-    "Bedrock Agents adapter requires boto3. "
-    "Install with: pip install agentassay[bedrock]"
+    "Bedrock Agents adapter requires boto3. Install with: pip install agentassay[bedrock]"
 )
 
 
@@ -284,11 +283,7 @@ class BedrockAgentsAdapter(AgentAdapter):
             if key in input_data:
                 return str(input_data[key])
 
-        filtered = {
-            k: v
-            for k, v in input_data.items()
-            if k not in ("scenario_id", "metadata")
-        }
+        filtered = {k: v for k, v in input_data.items() if k not in ("scenario_id", "metadata")}
         if len(filtered) == 1:
             return str(next(iter(filtered.values())))
 
@@ -296,9 +291,7 @@ class BedrockAgentsAdapter(AgentAdapter):
 
     # -- Internal: EventStream parsing ----------------------------------------
 
-    def _parse_event_stream(
-        self, response: dict[str, Any]
-    ) -> tuple[list[StepTrace], str]:
+    def _parse_event_stream(self, response: dict[str, Any]) -> tuple[list[StepTrace], str]:
         """Parse the Bedrock ``invoke_agent`` EventStream response.
 
         The ``completion`` field is an EventStream yielding events of type:
@@ -340,9 +333,7 @@ class BedrockAgentsAdapter(AgentAdapter):
                 trace_data = event["trace"].get("trace", {})
                 orch_trace = trace_data.get("orchestrationTrace", {})
 
-                new_steps = self._parse_orchestration_trace(
-                    orch_trace, step_index, event_start
-                )
+                new_steps = self._parse_orchestration_trace(orch_trace, step_index, event_start)
                 steps.extend(new_steps)
                 step_index += len(new_steps)
 
@@ -359,14 +350,18 @@ class BedrockAgentsAdapter(AgentAdapter):
                     )
                     action_group = api_input.get("actionGroupName", "unknown")
                     api_path = api_input.get("apiPath", api_input.get("function", ""))
-                    parameters = api_input.get("parameters", api_input.get("actionGroupFunction", {}))
+                    parameters = api_input.get(
+                        "parameters", api_input.get("actionGroupFunction", {})
+                    )
 
                     steps.append(
                         StepTrace(
                             step_index=step_index,
                             action="tool_call",
                             tool_name=f"{action_group}:{api_path}" if api_path else action_group,
-                            tool_input=parameters if isinstance(parameters, dict) else {"params": parameters},
+                            tool_input=parameters
+                            if isinstance(parameters, dict)
+                            else {"params": parameters},
                             tool_output=None,
                             duration_ms=duration_ms,
                             model=self._model,
@@ -452,9 +447,7 @@ class BedrockAgentsAdapter(AgentAdapter):
                 "text",
                 observation.get("repromptResponse", {}).get(
                     "text",
-                    observation.get("knowledgeBaseLookupOutput", {}).get(
-                        "text", str(observation)
-                    ),
+                    observation.get("knowledgeBaseLookupOutput", {}).get("text", str(observation)),
                 ),
             )
             steps.append(

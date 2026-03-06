@@ -41,9 +41,7 @@ class ModelCoverageTracker:
     __slots__ = ("_known_models", "_tested_models", "_frequency")
 
     def __init__(self, known_models: set[str] | None = None) -> None:
-        self._known_models: frozenset[str] = frozenset(
-            known_models or set()
-        )
+        self._known_models: frozenset[str] = frozenset(known_models or set())
         self._tested_models: set[str] = set()
         self._frequency: Counter[str] = Counter()
 

@@ -17,9 +17,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from agentassay.core.models import ExecutionTrace, StepTrace
+from agentassay.core.models import ExecutionTrace
 from agentassay.integrations.base import FrameworkNotInstalledError
-
 
 # ===================================================================
 # Helpers
@@ -48,7 +47,8 @@ def _make_mcp_tool(
     return {
         "name": name,
         "description": description,
-        "inputSchema": input_schema or {
+        "inputSchema": input_schema
+        or {
             "type": "object",
             "properties": {
                 "location": {"type": "string", "description": "City name"},
@@ -186,9 +186,7 @@ class TestMCPToolsAdapter:
         """from_anthropic_client defaults agent_name to 'mcp-anthropic-agent'."""
         from agentassay.integrations.mcp_adapter import MCPToolsAdapter
 
-        adapter = MCPToolsAdapter.from_anthropic_client(
-            client=MagicMock(), tools=[]
-        )
+        adapter = MCPToolsAdapter.from_anthropic_client(client=MagicMock(), tools=[])
         assert adapter.agent_name == "mcp-anthropic-agent"
 
     # -- run(): MCP client with run() method --------------------------------
@@ -280,10 +278,12 @@ class TestMCPToolsAdapter:
         adapter = _make_adapter(client=client, tools=[])
         adapter._mode = "mcp"
 
-        trace = adapter.run({
-            "query": "Read the file",
-            "resources": ["file:///path/to/document.md"],
-        })
+        trace = adapter.run(
+            {
+                "query": "Read the file",
+                "resources": ["file:///path/to/document.md"],
+            }
+        )
 
         assert trace.success is True
         retrieval_steps = [s for s in trace.steps if s.action == "retrieval"]
@@ -298,9 +298,11 @@ class TestMCPToolsAdapter:
         """Anthropic mode with text-only response produces llm_response step."""
         client = MagicMock()
         client.__class__.__name__ = "AnthropicClient"
-        client.messages.create.return_value = _make_anthropic_response([
-            {"type": "text", "text": "Hello! How can I help?"},
-        ])
+        client.messages.create.return_value = _make_anthropic_response(
+            [
+                {"type": "text", "text": "Hello! How can I help?"},
+            ]
+        )
 
         tools = [_make_mcp_tool("search")]
         adapter = _make_adapter(client=client, tools=tools)
@@ -335,9 +337,11 @@ class TestMCPToolsAdapter:
         )
 
         # Second call: final text response after tool result
-        final_response = _make_anthropic_response([
-            {"type": "text", "text": "It's sunny in Tokyo, 25C."},
-        ])
+        final_response = _make_anthropic_response(
+            [
+                {"type": "text", "text": "It's sunny in Tokyo, 25C."},
+            ]
+        )
 
         client.messages.create.side_effect = [tool_response, final_response]
 
@@ -482,9 +486,7 @@ class TestMCPToolsAdapter:
         """_build_user_input uses 'query' key first."""
         from agentassay.integrations.mcp_adapter import MCPToolsAdapter
 
-        result = MCPToolsAdapter._build_user_input(
-            {"query": "Hello", "input": "other"}
-        )
+        result = MCPToolsAdapter._build_user_input({"query": "Hello", "input": "other"})
         assert result == "Hello"
 
     def test_build_user_input_fallback_to_json(self):
@@ -583,10 +585,12 @@ class TestMCPToolsAdapter:
         adapter = _make_adapter(client=client, tools=tools)
         adapter._mode = "mcp"
 
-        trace = adapter.run({
-            "query": "test",
-            "resources": ["file:///a.txt"],
-        })
+        trace = adapter.run(
+            {
+                "query": "test",
+                "resources": ["file:///a.txt"],
+            }
+        )
 
         indices = [s.step_index for s in trace.steps]
         assert indices == sorted(indices)

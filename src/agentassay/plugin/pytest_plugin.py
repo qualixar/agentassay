@@ -73,7 +73,6 @@ from __future__ import annotations
 
 import logging
 import textwrap
-import time
 from collections.abc import Callable
 from typing import Any
 
@@ -83,8 +82,6 @@ from agentassay.core.models import (
     AgentConfig,
     AssayConfig,
     ExecutionTrace,
-    TestScenario,
-    TrialResult,
 )
 from agentassay.core.runner import TrialRunner
 from agentassay.statistics.confidence import ConfidenceInterval, wilson_interval
@@ -154,9 +151,7 @@ def pytest_collection_modifyitems(
             item.add_marker(pytest.mark.agentassay)
 
     if assay_count > 0:
-        logger.info(
-            "AgentAssay: collected %d stochastic agent test(s)", assay_count
-        )
+        logger.info("AgentAssay: collected %d stochastic agent test(s)", assay_count)
 
 
 def pytest_terminal_summary(
@@ -252,9 +247,7 @@ def assay_config(request: pytest.FixtureRequest) -> AssayConfig:
     if "alpha" in marker.kwargs:
         kwargs["significance_level"] = float(marker.kwargs["alpha"])
     if "threshold" in marker.kwargs:
-        kwargs.setdefault("metadata", {})["threshold"] = float(
-            marker.kwargs["threshold"]
-        )
+        kwargs.setdefault("metadata", {})["threshold"] = float(marker.kwargs["threshold"])
     if "confidence_method" in marker.kwargs:
         kwargs["confidence_method"] = str(marker.kwargs["confidence_method"])
     if "regression_test" in marker.kwargs:
@@ -390,15 +383,17 @@ def assert_no_regression(
 
     if result.significant:
         # Record in session-level results for terminal summary
-        _assay_results.append({
-            "test_name": "assert_no_regression",
-            "pass_rate": result.current_rate,
-            "ci": None,
-            "verdict": "FAIL",
-            "n_trials": current_n,
-            "n_passed": current_passes,
-            "duration_s": 0.0,
-        })
+        _assay_results.append(
+            {
+                "test_name": "assert_no_regression",
+                "pass_rate": result.current_rate,
+                "ci": None,
+                "verdict": "FAIL",
+                "n_trials": current_n,
+                "n_passed": current_passes,
+                "duration_s": 0.0,
+            }
+        )
 
         msg = textwrap.dedent(f"""\
             AgentAssay regression detected!
@@ -478,15 +473,17 @@ def assert_pass_rate(
         else:
             verdict_label = "INCONCLUSIVE"
 
-        _assay_results.append({
-            "test_name": "assert_pass_rate",
-            "pass_rate": ci.point_estimate,
-            "ci": (ci.lower, ci.upper),
-            "verdict": verdict_label,
-            "n_trials": n,
-            "n_passed": k,
-            "duration_s": 0.0,
-        })
+        _assay_results.append(
+            {
+                "test_name": "assert_pass_rate",
+                "pass_rate": ci.point_estimate,
+                "ci": (ci.lower, ci.upper),
+                "verdict": verdict_label,
+                "n_trials": n,
+                "n_passed": k,
+                "duration_s": 0.0,
+            }
+        )
 
         msg = textwrap.dedent(f"""\
             AgentAssay pass rate below threshold!
@@ -509,15 +506,17 @@ def assert_pass_rate(
         raise AssertionError(msg)
 
     # Success — record in session results
-    _assay_results.append({
-        "test_name": "assert_pass_rate",
-        "pass_rate": ci.point_estimate,
-        "ci": (ci.lower, ci.upper),
-        "verdict": "PASS",
-        "n_trials": n,
-        "n_passed": k,
-        "duration_s": 0.0,
-    })
+    _assay_results.append(
+        {
+            "test_name": "assert_pass_rate",
+            "pass_rate": ci.point_estimate,
+            "ci": (ci.lower, ci.upper),
+            "verdict": "PASS",
+            "n_trials": n,
+            "n_passed": k,
+            "duration_s": 0.0,
+        }
+    )
 
     return ci
 
@@ -565,44 +564,48 @@ def assert_verdict_passes(
     verdict = vf.evaluate_single(results, threshold=threshold)
 
     if verdict.status == VerdictStatus.FAIL:
-        _assay_results.append({
-            "test_name": "assert_verdict_passes",
-            "pass_rate": verdict.pass_rate,
-            "ci": verdict.pass_rate_ci,
-            "verdict": "FAIL",
-            "n_trials": verdict.num_trials,
-            "n_passed": verdict.num_passed,
-            "duration_s": 0.0,
-        })
+        _assay_results.append(
+            {
+                "test_name": "assert_verdict_passes",
+                "pass_rate": verdict.pass_rate,
+                "ci": verdict.pass_rate_ci,
+                "verdict": "FAIL",
+                "n_trials": verdict.num_trials,
+                "n_passed": verdict.num_passed,
+                "duration_s": 0.0,
+            }
+        )
         msg = textwrap.dedent(f"""\
             AgentAssay verdict: FAIL
 
             Pass rate:  {verdict.pass_rate:.2%} ({verdict.num_passed}/{verdict.num_trials})
             Threshold:  {threshold:.2%}
             CI:         [{verdict.pass_rate_ci[0]:.4f}, {verdict.pass_rate_ci[1]:.4f}]
-            Reason:     {verdict.details.get('reason', 'N/A')}
+            Reason:     {verdict.details.get("reason", "N/A")}
 
             The entire confidence interval is below the threshold.
         """)
         raise AssertionError(msg)
 
     if verdict.status == VerdictStatus.INCONCLUSIVE:
-        _assay_results.append({
-            "test_name": "assert_verdict_passes",
-            "pass_rate": verdict.pass_rate,
-            "ci": verdict.pass_rate_ci,
-            "verdict": "INCONCLUSIVE",
-            "n_trials": verdict.num_trials,
-            "n_passed": verdict.num_passed,
-            "duration_s": 0.0,
-        })
+        _assay_results.append(
+            {
+                "test_name": "assert_verdict_passes",
+                "pass_rate": verdict.pass_rate,
+                "ci": verdict.pass_rate_ci,
+                "verdict": "INCONCLUSIVE",
+                "n_trials": verdict.num_trials,
+                "n_passed": verdict.num_passed,
+                "duration_s": 0.0,
+            }
+        )
         msg = textwrap.dedent(f"""\
             AgentAssay verdict: INCONCLUSIVE
 
             Pass rate:  {verdict.pass_rate:.2%} ({verdict.num_passed}/{verdict.num_trials})
             Threshold:  {threshold:.2%}
             CI:         [{verdict.pass_rate_ci[0]:.4f}, {verdict.pass_rate_ci[1]:.4f}]
-            Reason:     {verdict.details.get('reason', 'N/A')}
+            Reason:     {verdict.details.get("reason", "N/A")}
 
             Not enough statistical evidence to confirm or deny.
             Try increasing the number of trials (n).
@@ -610,14 +613,16 @@ def assert_verdict_passes(
         raise AssertionError(msg)
 
     # PASS
-    _assay_results.append({
-        "test_name": "assert_verdict_passes",
-        "pass_rate": verdict.pass_rate,
-        "ci": verdict.pass_rate_ci,
-        "verdict": "PASS",
-        "n_trials": verdict.num_trials,
-        "n_passed": verdict.num_passed,
-        "duration_s": 0.0,
-    })
+    _assay_results.append(
+        {
+            "test_name": "assert_verdict_passes",
+            "pass_rate": verdict.pass_rate,
+            "ci": verdict.pass_rate_ci,
+            "verdict": "PASS",
+            "n_trials": verdict.num_trials,
+            "n_passed": verdict.num_passed,
+            "duration_s": 0.0,
+        }
+    )
 
     return vf

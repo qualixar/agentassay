@@ -39,7 +39,6 @@ from agentassay.persistence.schema import (
     _uuid,
 )
 
-
 # ===================================================================
 # ResultStore
 # ===================================================================
@@ -219,9 +218,17 @@ class ResultStore(ResultStoreReaderMixin):
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
-                    rid, project_id, agent_name, agent_version, model,
-                    framework, config_json, ts, status,
-                    total_trials, total_cost,
+                    rid,
+                    project_id,
+                    agent_name,
+                    agent_version,
+                    model,
+                    framework,
+                    config_json,
+                    ts,
+                    status,
+                    total_trials,
+                    total_cost,
                 ),
             )
             conn.commit()
@@ -288,9 +295,17 @@ class ResultStore(ResultStoreReaderMixin):
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
-                    tid, run_id, scenario_id, trial_num, success,
-                    latency_ms, cost, token_count, step_count,
-                    error_msg, trace_json,
+                    tid,
+                    run_id,
+                    scenario_id,
+                    trial_num,
+                    success,
+                    latency_ms,
+                    cost,
+                    token_count,
+                    step_count,
+                    error_msg,
+                    trace_json,
                 ),
             )
             conn.commit()
@@ -357,9 +372,17 @@ class ResultStore(ResultStoreReaderMixin):
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
-                    vid, run_id, scenario_id, status, pass_rate,
-                    ci_lower, ci_upper, p_value, effect_size,
-                    n_trials, method,
+                    vid,
+                    run_id,
+                    scenario_id,
+                    status,
+                    pass_rate,
+                    ci_lower,
+                    ci_upper,
+                    p_value,
+                    effect_size,
+                    n_trials,
+                    method,
                 ),
             )
             conn.commit()
@@ -504,8 +527,14 @@ class ResultStore(ResultStoreReaderMixin):
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
-                    gid, run_id, pipeline, decision, reason,
-                    rules_json, commit_sha, pr_number,
+                    gid,
+                    run_id,
+                    pipeline,
+                    decision,
+                    reason,
+                    rules_json,
+                    commit_sha,
+                    pr_number,
                 ),
             )
             conn.commit()
@@ -559,8 +588,13 @@ class ResultStore(ResultStoreReaderMixin):
                 VALUES (?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
-                    cid, run_id, model, input_tokens, output_tokens,
-                    total_cost, trial_count,
+                    cid,
+                    run_id,
+                    model,
+                    input_tokens,
+                    output_tokens,
+                    total_cost,
+                    trial_count,
                 ),
             )
             conn.commit()

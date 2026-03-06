@@ -56,31 +56,37 @@ References:
 
 from __future__ import annotations
 
-import math
-from dataclasses import dataclass
 try:
     from enum import StrEnum
 except ImportError:
     from enum import Enum
+
     class StrEnum(str, Enum):  # Python 3.10 compat
         pass
-from typing import Final, Sequence
 
-import numpy as np
+
+from collections.abc import Sequence
+
 from pydantic import BaseModel
 from scipy import stats as sp_stats
 
 from agentassay.statistics.effect_size import (
     cohens_h as _cohens_h_standalone,
+)
+from agentassay.statistics.effect_size import (
     glass_delta as _glass_delta_standalone,
+)
+from agentassay.statistics.effect_size import (
     interpret_effect_size as _interpret_standalone,
+)
+from agentassay.statistics.effect_size import (
     rank_biserial as _rank_biserial_standalone,
 )
-
 
 # ============================================================================
 # Pydantic model for the structured (new) API
 # ============================================================================
+
 
 class RegressionTestResult(BaseModel, frozen=True):
     """Immutable result of a regression hypothesis test.
@@ -131,17 +137,15 @@ class RegressionTestResult(BaseModel, frozen=True):
 # Validation helpers for the structured API
 # ============================================================================
 
+
 def _validate_counts(passes: int, n: int, label: str) -> None:
     if n < 0:
         raise ValueError(f"{label}_n must be >= 0, got {n}")
     if n == 0:
-        raise ValueError(
-            f"{label}_n is 0 — cannot perform a hypothesis test with zero trials."
-        )
+        raise ValueError(f"{label}_n is 0 — cannot perform a hypothesis test with zero trials.")
     if not (0 <= passes <= n):
         raise ValueError(
-            f"{label}_passes must be in [0, {label}_n], "
-            f"got {label}_passes={passes}, {label}_n={n}"
+            f"{label}_passes must be in [0, {label}_n], got {label}_passes={passes}, {label}_n={n}"
         )
 
 
@@ -181,6 +185,7 @@ def _build_interpretation(
 # ============================================================================
 # Structured API — Pydantic-based functions
 # ============================================================================
+
 
 def fisher_exact_regression(
     baseline_passes: int,
@@ -386,9 +391,7 @@ def ks_regression(
             "KS test and Glass's delta computation."
         )
 
-    ks_stat, p_value = sp_stats.ks_2samp(
-        baseline_scores, current_scores, alternative="less"
-    )
+    ks_stat, p_value = sp_stats.ks_2samp(baseline_scores, current_scores, alternative="less")
 
     baseline_mean = sum(baseline_scores) / len(baseline_scores)
     current_mean = sum(current_scores) / len(current_scores)
@@ -450,9 +453,7 @@ def mann_whitney_regression(
     _validate_scores(baseline_scores, "baseline_scores")
     _validate_scores(current_scores, "current_scores")
 
-    u_stat, p_value = sp_stats.mannwhitneyu(
-        baseline_scores, current_scores, alternative="greater"
-    )
+    u_stat, p_value = sp_stats.mannwhitneyu(baseline_scores, current_scores, alternative="greater")
 
     n1 = len(baseline_scores)
     n2 = len(current_scores)
@@ -484,4 +485,3 @@ def mann_whitney_regression(
             current_mean,
         ),
     )
-

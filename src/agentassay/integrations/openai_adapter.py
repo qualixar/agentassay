@@ -87,9 +87,7 @@ class OpenAIAgentsAdapter(AgentAdapter):
         if resolved_name is None:
             resolved_name = getattr(agent, "name", None) or "openai-agent"
 
-        super().__init__(
-            model=resolved_model, agent_name=resolved_name, metadata=metadata
-        )
+        super().__init__(model=resolved_model, agent_name=resolved_name, metadata=metadata)
         self._agent = agent
 
     # -- Core interface -------------------------------------------------------
@@ -192,11 +190,7 @@ class OpenAIAgentsAdapter(AgentAdapter):
                 return str(input_data[key])
 
         # Filter out scenario_id and metadata for the prompt
-        filtered = {
-            k: v
-            for k, v in input_data.items()
-            if k not in ("scenario_id", "metadata")
-        }
+        filtered = {k: v for k, v in input_data.items() if k not in ("scenario_id", "metadata")}
         if len(filtered) == 1:
             return str(next(iter(filtered.values())))
 
@@ -204,9 +198,7 @@ class OpenAIAgentsAdapter(AgentAdapter):
 
         return json.dumps(filtered, default=str)
 
-    def _extract_steps(
-        self, result: Any, total_run_ms: float
-    ) -> list[StepTrace]:
+    def _extract_steps(self, result: Any, total_run_ms: float) -> list[StepTrace]:
         """Extract StepTrace objects from a RunResult.
 
         The OpenAI Agents SDK ``RunResult`` has:
@@ -270,16 +262,13 @@ class OpenAIAgentsAdapter(AgentAdapter):
         # Tool call items
         if "toolcall" in item_type and "output" not in item_type:
             raw_item = getattr(item, "raw_item", item)
-            extra["tool_name"] = getattr(
-                raw_item, "name", getattr(item, "name", "unknown_tool")
-            )
-            extra["tool_input"] = getattr(
-                raw_item, "arguments", getattr(item, "arguments", {})
-            )
+            extra["tool_name"] = getattr(raw_item, "name", getattr(item, "name", "unknown_tool"))
+            extra["tool_input"] = getattr(raw_item, "arguments", getattr(item, "arguments", {}))
             # Parse arguments if string
             if isinstance(extra["tool_input"], str):
                 try:
                     import json
+
                     extra["tool_input"] = json.loads(extra["tool_input"])
                 except (json.JSONDecodeError, TypeError):
                     extra["tool_input"] = {"raw": extra["tool_input"]}

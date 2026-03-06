@@ -28,7 +28,6 @@ from agentassay.mutation.base import (
     _deep_copy_scenario,
 )
 
-
 # ===================================================================
 # ToolRemovalMutator
 # ===================================================================
@@ -265,9 +264,7 @@ class ToolNoiseMutator(MutationOperator):
 
         return self._corrupt_text_inplace(tool, desc_key)
 
-    def _corrupt_text_inplace(
-        self, container: dict[str, Any], key: str
-    ) -> bool:
+    def _corrupt_text_inplace(self, container: dict[str, Any], key: str) -> bool:
         """Replace words in container[key] with typo-corrupted versions."""
         text = str(container[key])
         words = text.split()

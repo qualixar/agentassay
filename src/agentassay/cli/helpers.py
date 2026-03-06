@@ -169,13 +169,9 @@ def extract_passed_list(results_data: dict[str, Any] | list[Any]) -> list[bool]:
             elif "success" in item:
                 passed.append(bool(item["success"]))
             else:
-                raise click.ClickException(
-                    f"Trial {i} has no 'passed' or 'success' field: {item}"
-                )
+                raise click.ClickException(f"Trial {i} has no 'passed' or 'success' field: {item}")
         else:
-            raise click.ClickException(
-                f"Trial {i} is not a dict or bool: {type(item).__name__}"
-            )
+            raise click.ClickException(f"Trial {i} is not a dict or bool: {type(item).__name__}")
 
     return passed
 

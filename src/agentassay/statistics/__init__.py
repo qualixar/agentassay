@@ -42,9 +42,15 @@ Pass rate: 85% [76.86%, 90.87%]
 # ============================================================================
 
 # Confidence intervals
+# ============================================================================
+# Legacy API — preserved for backward compatibility
+# ============================================================================
 from agentassay.statistics.confidence import (
     ConfidenceInterval,
+    ConfidenceMethod,
+    binomial_confidence_interval,
     clopper_pearson_interval,
+    minimum_sample_size,
     normal_interval,
     wilson_interval,
 )
@@ -65,6 +71,17 @@ from agentassay.statistics.hypothesis import (
     ks_regression,
     mann_whitney_regression,
 )
+from agentassay.statistics.hypothesis_legacy import (
+    HypothesisResult,
+    RegressionTest,
+    ScoreTest,
+    rank_biserial_r,
+    test_binary_regression,
+    test_score_regression,
+)
+from agentassay.statistics.hypothesis_legacy import (
+    cohens_h as cohens_h_legacy,  # noqa: F401 - legacy re-export for backwards compat
+)
 
 # Power analysis
 from agentassay.statistics.power import (
@@ -76,25 +93,6 @@ from agentassay.statistics.power import (
 from agentassay.statistics.sprt import (
     SPRTResult,
     SPRTRunner,
-)
-
-# ============================================================================
-# Legacy API — preserved for backward compatibility
-# ============================================================================
-
-from agentassay.statistics.confidence import (
-    ConfidenceMethod,
-    binomial_confidence_interval,
-    minimum_sample_size,
-)
-from agentassay.statistics.hypothesis_legacy import (
-    HypothesisResult,
-    RegressionTest,
-    ScoreTest,
-    cohens_h as cohens_h,  # noqa: duplicate re-export is intentional
-    rank_biserial_r,
-    test_binary_regression,
-    test_score_regression,
 )
 
 __all__ = [

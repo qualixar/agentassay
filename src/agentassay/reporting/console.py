@@ -24,15 +24,13 @@ from rich.columns import Columns
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
-from rich.text import Text
 
 from agentassay.core.models import TrialResult
 from agentassay.coverage.aggregate import CoverageTuple
-from agentassay.mutation.runner import MutationSuiteResult
 from agentassay.metamorphic.runner import MetamorphicTestResult
+from agentassay.mutation.runner import MutationSuiteResult
 from agentassay.verdicts.gate import GateDecision, GateReport
 from agentassay.verdicts.verdict import StochasticVerdict, VerdictStatus
-
 
 # ---------------------------------------------------------------------------
 # Colour map
@@ -62,6 +60,7 @@ _GATE_ICONS: dict[GateDecision, str] = {
 # ---------------------------------------------------------------------------
 # Helper: text progress bar
 # ---------------------------------------------------------------------------
+
 
 def _bar(value: float, width: int = 20) -> str:
     """Render a value in [0, 1] as a text-based progress bar.
@@ -235,9 +234,7 @@ class ConsoleReporter:
 
         if verdict.effect_size is not None:
             interp = verdict.effect_size_interpretation or "unknown"
-            lines.append(
-                f"[bold]Effect Size:[/bold]  {verdict.effect_size:.4f} ({interp})"
-            )
+            lines.append(f"[bold]Effect Size:[/bold]  {verdict.effect_size:.4f} ({interp})")
 
         if verdict.regression_detected:
             lines.append("[bold red]Regression Detected[/bold red]")
@@ -292,15 +289,13 @@ class ConsoleReporter:
         delta_str = f"{delta:+.4f}"
 
         baseline_panel = Panel(
-            f"{_bar(baseline_rate)}\n\n"
-            f"[bold]Pass Rate:[/bold] {baseline_rate:.4f}",
+            f"{_bar(baseline_rate)}\n\n[bold]Pass Rate:[/bold] {baseline_rate:.4f}",
             title="[bold]Baseline[/bold]",
             border_style="blue",
         )
 
         current_panel = Panel(
-            f"{_bar(current_rate)}\n\n"
-            f"[bold]Pass Rate:[/bold] {current_rate:.4f}",
+            f"{_bar(current_rate)}\n\n[bold]Pass Rate:[/bold] {current_rate:.4f}",
             title="[bold]Current[/bold]",
             border_style="cyan",
         )
@@ -470,10 +465,7 @@ class ConsoleReporter:
             detail.add_column("Delta", justify="right")
 
             for r in suite_result.results:
-                killed_str = (
-                    "[green]KILLED[/green]" if r.killed
-                    else "[red]SURVIVED[/red]"
-                )
+                killed_str = "[green]KILLED[/green]" if r.killed else "[red]SURVIVED[/red]"
                 if r.error:
                     killed_str = "[yellow]ERROR[/yellow]"
 
@@ -573,11 +565,12 @@ class ConsoleReporter:
         vr = mr_result.violation_rate
         vr_style = "green" if vr <= 0.1 else "yellow" if vr <= 0.3 else "red"
 
+        held_count = mr_result.total_relations - mr_result.violations
         header_lines = [
             f"[bold]Violation Rate:[/bold]    [{vr_style}]{vr:.1%}[/{vr_style}]",
             f"[bold]Total Relations:[/bold]   {mr_result.total_relations}",
             f"[bold]Violations:[/bold]        [red]{mr_result.violations}[/red]",
-            f"[bold]Held:[/bold]              [green]{mr_result.total_relations - mr_result.violations}[/green]",
+            f"[bold]Held:[/bold]              [green]{held_count}[/green]",
         ]
 
         self._console.print(
@@ -605,11 +598,7 @@ class ConsoleReporter:
                 tested = info.get("tested", 0)
                 violations = info.get("violations", 0)
                 rate = info.get("rate", 0.0)
-                rate_style = (
-                    "green" if rate <= 0.1
-                    else "yellow" if rate <= 0.3
-                    else "red"
-                )
+                rate_style = "green" if rate <= 0.1 else "yellow" if rate <= 0.3 else "red"
                 fam_table.add_row(
                     family.title(),
                     str(tested),
@@ -633,10 +622,7 @@ class ConsoleReporter:
             detail.add_column("Similarity", justify="right")
 
             for r in mr_result.results:
-                holds_str = (
-                    "[green]HOLDS[/green]" if r.holds
-                    else "[red]VIOLATED[/red]"
-                )
+                holds_str = "[green]HOLDS[/green]" if r.holds else "[red]VIOLATED[/red]"
                 detail.add_row(
                     r.relation_name,
                     r.relation_family,

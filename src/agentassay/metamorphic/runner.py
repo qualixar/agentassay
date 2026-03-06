@@ -260,8 +260,7 @@ class MetamorphicRunner:
 
         if not result.holds:
             logger.warning(
-                "Relation '%s' VIOLATED on scenario '%s' "
-                "(similarity=%.3f)",
+                "Relation '%s' VIOLATED on scenario '%s' (similarity=%.3f)",
                 relation.name,
                 scenario.name,
                 result.similarity_score,
@@ -291,8 +290,7 @@ class MetamorphicRunner:
             # Decomposition didn't produce meaningful subtasks;
             # fall back to standard path
             logger.debug(
-                "Decomposition of '%s' produced %d sub-scenarios; "
-                "falling back to standard path.",
+                "Decomposition of '%s' produced %d sub-scenarios; falling back to standard path.",
                 scenario.name,
                 len(sub_scenarios),
             )
@@ -317,8 +315,7 @@ class MetamorphicRunner:
 
         if not result.holds:
             logger.warning(
-                "Decomposition relation VIOLATED on scenario '%s' "
-                "(similarity=%.3f, %d subtasks)",
+                "Decomposition relation VIOLATED on scenario '%s' (similarity=%.3f, %d subtasks)",
                 scenario.name,
                 result.similarity_score,
                 len(sub_traces),

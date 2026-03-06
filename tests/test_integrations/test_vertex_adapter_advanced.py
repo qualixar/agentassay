@@ -9,31 +9,22 @@ All tests use mock objects -- ``google-cloud-aiplatform`` is NOT required.
 from __future__ import annotations
 
 import sys
-from typing import Any
-from unittest.mock import MagicMock, PropertyMock, patch
-
-import pytest
+from unittest.mock import MagicMock, patch
 
 from agentassay.integrations.vertex_adapter import (
     VertexAIAgentsAdapter,
-    _DEFAULT_PRICING,
 )
-from agentassay.integrations.base import FrameworkNotInstalledError
-from agentassay.core.models import ExecutionTrace, StepTrace
 
 # Import helpers from the core test module
 from tests.test_integrations.test_vertex_adapter import (
-    _make_text_part,
+    _FAKE_VERTEXAI,
+    _make_candidate,
     _make_function_call_part,
     _make_function_response_part,
-    _make_inline_data_part,
-    _make_candidate,
-    _make_usage_metadata,
     _make_response,
-    _make_grounding_metadata,
-    _FAKE_VERTEXAI,
+    _make_text_part,
+    _make_usage_metadata,
 )
-
 
 # ===================================================================
 # Tests: Token usage edge cases
@@ -71,15 +62,15 @@ class TestVertexAdapterTokenUsage:
     def test_zero_tokens_zero_cost(self) -> None:
         """Zero tokens produce zero cost."""
         mock_model = MagicMock()
-        adapter = VertexAIAgentsAdapter(
-            mock_model, model="gemini-2.0-flash"
-        )
+        adapter = VertexAIAgentsAdapter(mock_model, model="gemini-2.0-flash")
 
-        cost = adapter._estimate_cost({
-            "prompt_tokens": 0,
-            "completion_tokens": 0,
-            "total_tokens": 0,
-        })
+        cost = adapter._estimate_cost(
+            {
+                "prompt_tokens": 0,
+                "completion_tokens": 0,
+                "total_tokens": 0,
+            }
+        )
 
         assert cost == 0.0
 
@@ -108,9 +99,7 @@ class TestVertexAdapterGroundingEdgeCases:
         meta.retrieval_metadata = None
 
         mock_model = MagicMock()
-        adapter = VertexAIAgentsAdapter(
-            mock_model, model="gemini-2.0-flash"
-        )
+        adapter = VertexAIAgentsAdapter(mock_model, model="gemini-2.0-flash")
 
         step = adapter._extract_grounding_step(meta, 0, 10.0, 0)
 
@@ -128,9 +117,7 @@ class TestVertexAdapterGroundingEdgeCases:
         meta.retrieval_metadata = None
 
         mock_model = MagicMock()
-        adapter = VertexAIAgentsAdapter(
-            mock_model, model="gemini-2.0-flash"
-        )
+        adapter = VertexAIAgentsAdapter(mock_model, model="gemini-2.0-flash")
 
         step = adapter._extract_grounding_step(meta, 0, 5.0, 0)
 
@@ -156,7 +143,8 @@ class TestVertexAdapterComplexScenario:
         candidate = _make_candidate(parts)
         usage = _make_usage_metadata(300, 100, 400)
         response = _make_response(
-            [candidate], usage,
+            [candidate],
+            usage,
             text="I'll look up the weather.\nThe weather in Paris is 18C and cloudy.",
         )
 
@@ -165,9 +153,7 @@ class TestVertexAdapterComplexScenario:
         mock_model._model_name = None
         mock_model.model_name = None
 
-        adapter = VertexAIAgentsAdapter(
-            mock_model, model="gemini-2.0-flash"
-        )
+        adapter = VertexAIAgentsAdapter(mock_model, model="gemini-2.0-flash")
 
         with patch.dict(sys.modules, {"vertexai": _FAKE_VERTEXAI}):
             trace = adapter.run({"query": "What's the weather in Paris?"})
@@ -196,18 +182,14 @@ class TestVertexAdapterComplexScenario:
         bad_candidate.content = None
         bad_candidate.grounding_metadata = None
 
-        response = _make_response(
-            [bad_candidate, good_candidate], text="Good answer"
-        )
+        response = _make_response([bad_candidate, good_candidate], text="Good answer")
 
         mock_model = MagicMock()
         mock_model.generate_content.return_value = response
         mock_model._model_name = None
         mock_model.model_name = None
 
-        adapter = VertexAIAgentsAdapter(
-            mock_model, model="gemini-2.0-flash"
-        )
+        adapter = VertexAIAgentsAdapter(mock_model, model="gemini-2.0-flash")
 
         with patch.dict(sys.modules, {"vertexai": _FAKE_VERTEXAI}):
             trace = adapter.run({"query": "test"})
@@ -227,6 +209,7 @@ class TestVertexAdapterComplexScenario:
         # Use a real non-iterable, non-mapping object instead.
         class _NonDictArgs:
             """Object that causes dict() to raise TypeError."""
+
             def __str__(self) -> str:
                 return "non-dict-args-value"
 
@@ -246,9 +229,7 @@ class TestVertexAdapterComplexScenario:
         mock_model._model_name = None
         mock_model.model_name = None
 
-        adapter = VertexAIAgentsAdapter(
-            mock_model, model="gemini-2.0-flash"
-        )
+        adapter = VertexAIAgentsAdapter(mock_model, model="gemini-2.0-flash")
 
         with patch.dict(sys.modules, {"vertexai": _FAKE_VERTEXAI}):
             trace = adapter.run({"query": "test"})

@@ -22,12 +22,14 @@ from agentassay.cli.helpers import console, load_yaml, write_json
 
 @click.command("mutate")
 @click.option(
-    "--config", "-c",
+    "--config",
+    "-c",
     type=click.Path(exists=True),
     help="YAML config file with AgentConfig parameters.",
 )
 @click.option(
-    "--scenario", "-s",
+    "--scenario",
+    "-s",
     type=click.Path(exists=True),
     help="YAML scenario file with TestScenario definition.",
 )
@@ -38,7 +40,8 @@ from agentassay.cli.helpers import console, load_yaml, write_json
     help="Comma-separated list of operator categories: prompt,tool,model,context",
 )
 @click.option(
-    "--output", "-o",
+    "--output",
+    "-o",
     type=click.Path(),
     default=None,
     help="Output JSON file for mutation results.",
@@ -67,10 +70,12 @@ def mutate_command(
         agentassay mutate --config agent.yaml --scenario qa.yaml
         agentassay mutate -c agent.yaml -s qa.yaml --operators prompt,tool
     """
-    console.print(Panel.fit(
-        "[bold]AgentAssay[/bold] -- Mutation Testing",
-        border_style="blue",
-    ))
+    console.print(
+        Panel.fit(
+            "[bold]AgentAssay[/bold] -- Mutation Testing",
+            border_style="blue",
+        )
+    )
 
     # Parse operator categories
     selected_categories: list[str] | None = None
@@ -80,8 +85,7 @@ def mutate_command(
         invalid = set(selected_categories) - valid_cats
         if invalid:
             raise click.ClickException(
-                f"Unknown operator categories: {invalid}. "
-                f"Valid: {sorted(valid_cats)}"
+                f"Unknown operator categories: {invalid}. Valid: {sorted(valid_cats)}"
             )
 
     # Display selected operators
@@ -117,21 +121,20 @@ def mutate_command(
     )
 
     # Mutation score explanation
-    console.print(Panel(
-        "[bold]Mutation Score Interpretation[/bold]\n\n"
-        "  [green]>= 0.80[/green]  Strong test suite (detects most perturbations)\n"
-        "  [yellow]0.50 - 0.80[/yellow]  Moderate (some blind spots)\n"
-        "  [red]< 0.50[/red]  Weak (tests pass regardless of mutations)",
-        border_style="dim",
-    ))
+    console.print(
+        Panel(
+            "[bold]Mutation Score Interpretation[/bold]\n\n"
+            "  [green]>= 0.80[/green]  Strong test suite (detects most perturbations)\n"
+            "  [yellow]0.50 - 0.80[/yellow]  Moderate (some blind spots)\n"
+            "  [red]< 0.50[/red]  Weak (tests pass regardless of mutations)",
+            border_style="dim",
+        )
+    )
 
     if output:
         output_data = {
             "command": "mutate",
-            "operators": [
-                {"name": op.name, "category": op.category}
-                for op in ops
-            ],
+            "operators": [{"name": op.name, "category": op.category} for op in ops],
             "operator_count": len(ops),
             "selected_categories": selected_categories,
             "config_file": config,

@@ -16,7 +16,6 @@ direct consumption by end users.
 
 from __future__ import annotations
 
-import json
 import time
 from typing import Any
 
@@ -43,14 +42,16 @@ def convert_mcp_tools_to_anthropic(
     """
     anthropic_tools = []
     for tool in mcp_tools:
-        anthropic_tools.append({
-            "name": tool.get("name", ""),
-            "description": tool.get("description", ""),
-            "input_schema": tool.get(
-                "inputSchema",
-                tool.get("input_schema", {"type": "object", "properties": {}}),
-            ),
-        })
+        anthropic_tools.append(
+            {
+                "name": tool.get("name", ""),
+                "description": tool.get("description", ""),
+                "input_schema": tool.get(
+                    "inputSchema",
+                    tool.get("input_schema", {"type": "object", "properties": {}}),
+                ),
+            }
+        )
     return anthropic_tools
 
 
@@ -157,16 +158,16 @@ def run_anthropic(
             tool_id = getattr(tool_block, "id", "")
 
             # Execute tool via MCP client if available
-            tool_output, tool_duration = execute_tool_fn(
-                tool_name, tool_input_data
-            )
+            tool_output, tool_duration = execute_tool_fn(tool_name, tool_input_data)
 
             steps.append(
                 StepTrace(
                     step_index=step_index,
                     action="tool_call",
                     tool_name=tool_name,
-                    tool_input=tool_input_data if isinstance(tool_input_data, dict) else {"raw": tool_input_data},
+                    tool_input=tool_input_data
+                    if isinstance(tool_input_data, dict)
+                    else {"raw": tool_input_data},
                     tool_output=tool_output,
                     duration_ms=tool_duration,
                     model=model,
@@ -178,11 +179,13 @@ def run_anthropic(
             )
             step_index += 1
 
-            tool_results.append({
-                "type": "tool_result",
-                "tool_use_id": tool_id,
-                "content": safe_serialize_fn(tool_output),
-            })
+            tool_results.append(
+                {
+                    "type": "tool_result",
+                    "tool_use_id": tool_id,
+                    "content": safe_serialize_fn(tool_output),
+                }
+            )
 
         # Check stop reason
         stop_reason = getattr(response, "stop_reason", "end_turn")

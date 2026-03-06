@@ -11,8 +11,8 @@ Target: 20+ tests.
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock, patch
 from typing import Any
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -22,7 +22,6 @@ from agentassay.integrations.langgraph_adapter import (
     LangGraphAdapter,
     _check_langgraph_installed,
 )
-
 
 # ===================================================================
 # Helpers
@@ -44,9 +43,7 @@ def _make_mock_graph(
 
 def _patch_langgraph():
     """Patch langgraph import check to allow testing without installation."""
-    return patch(
-        "agentassay.integrations.langgraph_adapter._check_langgraph_installed"
-    )
+    return patch("agentassay.integrations.langgraph_adapter._check_langgraph_installed")
 
 
 # ===================================================================
@@ -106,9 +103,7 @@ class TestAdapterCreation:
     def test_custom_agent_name(self):
         """Custom agent name is respected."""
         graph = _make_mock_graph()
-        adapter = LangGraphAdapter(
-            graph=graph, agent_name="my-graph-agent"
-        )
+        adapter = LangGraphAdapter(graph=graph, agent_name="my-graph-agent")
         assert adapter.agent_name == "my-graph-agent"
 
     def test_use_stream_flag(self):
@@ -319,9 +314,7 @@ class TestMessageClassification:
         """Dict output without messages is classified as observation."""
         from agentassay.integrations.langgraph_adapter import LangGraphAdapter
 
-        action, kwargs = LangGraphAdapter._classify_node_output(
-            "some_node", {"data": "value"}
-        )
+        action, kwargs = LangGraphAdapter._classify_node_output("some_node", {"data": "value"})
 
         assert action == "observation"
 

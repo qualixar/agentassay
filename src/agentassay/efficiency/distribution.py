@@ -19,10 +19,9 @@ import numpy as np
 from scipy import stats as sp_stats
 
 from agentassay.efficiency.fingerprint import (
-    BehavioralFingerprint,
     _DIMENSION_NAMES,
+    BehavioralFingerprint,
 )
-
 
 # ===================================================================
 # FingerprintDistribution — statistics over multiple fingerprints
@@ -51,9 +50,7 @@ class FingerprintDistribution:
         self._d = BehavioralFingerprint.vector_dimension()
 
         # Build the n x d data matrix
-        self._matrix = np.array(
-            [fp.to_vector() for fp in fingerprints], dtype=np.float64
-        )
+        self._matrix = np.array([fp.to_vector() for fp in fingerprints], dtype=np.float64)
 
         # Mean vector and covariance matrix
         self._mean = np.mean(self._matrix, axis=0)
@@ -93,9 +90,7 @@ class FingerprintDistribution:
     def per_dimension_variance(self) -> dict[str, float]:
         """Variance for each fingerprint dimension individually."""
         diag = np.diag(self._cov)
-        return {
-            name: float(diag[i]) for i, name in enumerate(_DIMENSION_NAMES)
-        }
+        return {name: float(diag[i]) for i, name in enumerate(_DIMENSION_NAMES)}
 
     def distance_to(self, other: FingerprintDistribution) -> float:
         """Mahalanobis distance between two fingerprint distributions."""
@@ -192,9 +187,7 @@ class FingerprintDistribution:
             baseline_vals = self._matrix[:, i]
             candidate_vals = other._matrix[:, i]
 
-            _, p_val = sp_stats.ttest_ind(
-                baseline_vals, candidate_vals, equal_var=False
-            )
+            _, p_val = sp_stats.ttest_ind(baseline_vals, candidate_vals, equal_var=False)
             p_val = float(p_val)
 
             if p_val < min_p:
@@ -261,9 +254,7 @@ def _identify_changed_dimensions(
         candidate_vals = candidate._matrix[:, i]
 
         # Welch's t-test (unequal variance assumed)
-        _, p_val = sp_stats.ttest_ind(
-            baseline_vals, candidate_vals, equal_var=False
-        )
+        _, p_val = sp_stats.ttest_ind(baseline_vals, candidate_vals, equal_var=False)
 
         if p_val < bonferroni_alpha:
             changed.append(_DIMENSION_NAMES[i])

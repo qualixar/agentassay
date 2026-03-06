@@ -32,21 +32,21 @@ Quick start::
 """
 
 from agentassay.metamorphic.relations import (
+    # Family 4: Oracle
+    ConsistencyRelation,
+    # Family 3: Composition
+    DecompositionRelation,
+    # Family 1: Permutation
+    InputPermutationRelation,
+    IrrelevantAdditionRelation,
     # Base class
     MetamorphicRelation,
     # Result model
     MetamorphicResult,
-    # Family 1: Permutation
-    InputPermutationRelation,
+    MonotonicityRelation,
     ToolOrderRelation,
     # Family 2: Perturbation
     TypographicalPerturbation,
-    IrrelevantAdditionRelation,
-    # Family 3: Composition
-    DecompositionRelation,
-    # Family 4: Oracle
-    ConsistencyRelation,
-    MonotonicityRelation,
 )
 from agentassay.metamorphic.runner import (
     DEFAULT_RELATIONS,

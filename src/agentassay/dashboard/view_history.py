@@ -24,7 +24,6 @@ from agentassay.dashboard.helpers import (
     create_trend_chart,
     empty_state,
     format_cost,
-    format_pass_rate,
     status_badge,
 )
 from agentassay.persistence import QueryAPI
@@ -126,9 +125,7 @@ def _render_pass_rate_trend(
     """Pass rate line chart with regression points highlighted in red."""
     st.subheader("Pass Rate Over Time")
 
-    data = query_api.get_pass_rate_trend(
-        agent_name=agent_name, model=model, days=days
-    )
+    data = query_api.get_pass_rate_trend(agent_name=agent_name, model=model, days=days)
     if not data:
         empty_state("Not enough data for pass-rate trend.")
         return
@@ -177,9 +174,7 @@ def _render_pass_rate_trend(
     st.plotly_chart(fig, width="stretch")
 
 
-def _find_regressions(
-    dates: list[str], rates: list[float]
-) -> tuple[list[str], list[float]]:
+def _find_regressions(dates: list[str], rates: list[float]) -> tuple[list[str], list[float]]:
     """Identify points where pass rate dropped from the previous day.
 
     Returns
@@ -206,9 +201,7 @@ def _render_cost_trend(
     """Cost per run over time."""
     st.subheader("Cost Per Run Over Time")
 
-    data = query_api.get_cost_trend(
-        agent_name=agent_name, model=model, days=days
-    )
+    data = query_api.get_cost_trend(agent_name=agent_name, model=model, days=days)
     if not data:
         empty_state("Not enough data for cost trend.")
         return
@@ -276,9 +269,7 @@ def _render_run_table(
     """Full run history table."""
     st.subheader("Run History")
 
-    runs = query_api.list_runs(
-        agent_name=agent_name, model=model, limit=50
-    )
+    runs = query_api.list_runs(agent_name=agent_name, model=model, limit=50)
     if not runs:
         empty_state("No runs match the current filters.")
         return

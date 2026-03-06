@@ -30,26 +30,30 @@ from agentassay.statistics.hypothesis import fisher_exact_regression
 
 @click.command("compare")
 @click.option(
-    "--baseline", "-b",
+    "--baseline",
+    "-b",
     required=True,
     type=click.Path(exists=True),
     help="JSON file with baseline trial results.",
 )
 @click.option(
-    "--current", "-c",
+    "--current",
+    "-c",
     required=True,
     type=click.Path(exists=True),
     help="JSON file with current trial results.",
 )
 @click.option(
-    "--alpha", "-a",
+    "--alpha",
+    "-a",
     type=float,
     default=0.05,
     show_default=True,
     help="Significance level for the regression test.",
 )
 @click.option(
-    "--output", "-o",
+    "--output",
+    "-o",
     type=click.Path(),
     default=None,
     help="Output JSON file for comparison results.",
@@ -76,10 +80,12 @@ def compare_command(
         agentassay compare --baseline v1.json --current v2.json
         agentassay compare -b baseline.json -c current.json --alpha 0.01
     """
-    console.print(Panel.fit(
-        "[bold]AgentAssay[/bold] -- Regression Comparison",
-        border_style="blue",
-    ))
+    console.print(
+        Panel.fit(
+            "[bold]AgentAssay[/bold] -- Regression Comparison",
+            border_style="blue",
+        )
+    )
 
     # Load results
     baseline_data = load_json(baseline, "baseline")
@@ -142,17 +148,21 @@ def compare_command(
 
     # Verdict
     if result.significant:
-        console.print(Panel(
-            f"[bold red]REGRESSION DETECTED[/bold red]\n\n{result.interpretation}",
-            border_style="red",
-            title="Verdict",
-        ))
+        console.print(
+            Panel(
+                f"[bold red]REGRESSION DETECTED[/bold red]\n\n{result.interpretation}",
+                border_style="red",
+                title="Verdict",
+            )
+        )
     else:
-        console.print(Panel(
-            f"[bold green]NO REGRESSION[/bold green]\n\n{result.interpretation}",
-            border_style="green",
-            title="Verdict",
-        ))
+        console.print(
+            Panel(
+                f"[bold green]NO REGRESSION[/bold green]\n\n{result.interpretation}",
+                border_style="green",
+                title="Verdict",
+            )
+        )
 
     # Write output
     if output:

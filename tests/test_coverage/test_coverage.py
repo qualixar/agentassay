@@ -9,8 +9,6 @@ Target: ~20 tests.
 
 from __future__ import annotations
 
-import math
-
 import pytest
 
 from agentassay.coverage.aggregate import (
@@ -23,10 +21,7 @@ from agentassay.coverage.model_coverage import ModelCoverageTracker
 from agentassay.coverage.path_coverage import PathCoverageTracker
 from agentassay.coverage.state_coverage import StateCoverageTracker
 from agentassay.coverage.tool_coverage import ToolCoverageTracker
-
-from tests.conftest import make_trace, make_step
-from agentassay.core.models import ExecutionTrace, StepTrace
-
+from tests.conftest import make_trace
 
 # ===================================================================
 # ToolCoverageTracker
@@ -153,15 +148,11 @@ class TestBoundaryCoverageTracker:
         assert tracker.coverage_ratio() == 1.0
 
     def test_untested_boundary_zero_coverage(self):
-        tracker = BoundaryCoverageTracker(
-            boundaries={"latency": (0.0, 5000.0)}
-        )
+        tracker = BoundaryCoverageTracker(boundaries={"latency": (0.0, 5000.0)})
         assert tracker.coverage_ratio() == 0.0
 
     def test_near_both_ends_full_coverage(self):
-        tracker = BoundaryCoverageTracker(
-            boundaries={"latency": (0.0, 100.0)}
-        )
+        tracker = BoundaryCoverageTracker(boundaries={"latency": (0.0, 100.0)})
         # Create traces with metadata near boundaries
         low_trace = make_trace(steps=1, metadata={"latency": 5.0})
         high_trace = make_trace(steps=1, metadata={"latency": 95.0})

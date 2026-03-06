@@ -49,8 +49,7 @@ from agentassay.integrations.base import (
 logger = logging.getLogger(__name__)
 
 _INSTALL_HINT = (
-    "MCP Tools adapter requires the MCP Python SDK. "
-    "Install with: pip install agentassay[mcp]"
+    "MCP Tools adapter requires the MCP Python SDK. Install with: pip install agentassay[mcp]"
 )
 
 
@@ -327,11 +326,7 @@ class MCPToolsAdapter(AgentAdapter):
             if key in input_data:
                 return str(input_data[key])
 
-        filtered = {
-            k: v
-            for k, v in input_data.items()
-            if k not in ("scenario_id", "metadata")
-        }
+        filtered = {k: v for k, v in input_data.items() if k not in ("scenario_id", "metadata")}
         if len(filtered) == 1:
             return str(next(iter(filtered.values())))
 
@@ -339,9 +334,7 @@ class MCPToolsAdapter(AgentAdapter):
 
     # -- Internal: MCP client execution ---------------------------------------
 
-    def _run_mcp_client(
-        self, input_data: dict[str, Any]
-    ) -> tuple[list[StepTrace], Any]:
+    def _run_mcp_client(self, input_data: dict[str, Any]) -> tuple[list[StepTrace], Any]:
         """Execute using a direct MCP client.
 
         Calls ``call_tool`` for each tool invocation and ``read_resource``
@@ -362,9 +355,7 @@ class MCPToolsAdapter(AgentAdapter):
         user_input = self._build_user_input(input_data)
 
         # Check if client has a run/invoke method for agentic execution
-        run_fn = getattr(self._client, "run", None) or getattr(
-            self._client, "invoke", None
-        )
+        run_fn = getattr(self._client, "run", None) or getattr(self._client, "invoke", None)
 
         if run_fn is not None:
             # Client supports an agentic run method -- instrument it
@@ -416,9 +407,7 @@ class MCPToolsAdapter(AgentAdapter):
 
                 step_start = time.perf_counter()
                 try:
-                    result = call_tool_fn(
-                        tool_name, arguments={"input": user_input}
-                    )
+                    result = call_tool_fn(tool_name, arguments={"input": user_input})
                     duration_ms = (time.perf_counter() - step_start) * 1000.0
                     steps.append(
                         StepTrace(
@@ -493,9 +482,7 @@ class MCPToolsAdapter(AgentAdapter):
 
     # -- Internal: Anthropic client execution ---------------------------------
 
-    def _run_anthropic(
-        self, input_data: dict[str, Any]
-    ) -> tuple[list[StepTrace], Any]:
+    def _run_anthropic(self, input_data: dict[str, Any]) -> tuple[list[StepTrace], Any]:
         """Execute using an Anthropic client with MCP tool definitions.
 
         Delegates to ``mcp_anthropic.run_anthropic()`` which handles the
@@ -525,9 +512,7 @@ class MCPToolsAdapter(AgentAdapter):
 
     # -- Internal: tool execution ---------------------------------------------
 
-    def _execute_tool(
-        self, tool_name: str, tool_input: Any
-    ) -> tuple[Any, float]:
+    def _execute_tool(self, tool_name: str, tool_input: Any) -> tuple[Any, float]:
         """Execute a tool call, trying the MCP client first.
 
         Parameters
@@ -601,9 +586,15 @@ class MCPToolsAdapter(AgentAdapter):
         if tool_calls and isinstance(tool_calls, list):
             return [
                 {
-                    "name": getattr(tc, "name", tc.get("name", "unknown") if isinstance(tc, dict) else "unknown"),
-                    "arguments": getattr(tc, "arguments", tc.get("arguments", {}) if isinstance(tc, dict) else {}),
-                    "result": getattr(tc, "result", tc.get("result") if isinstance(tc, dict) else None),
+                    "name": getattr(
+                        tc, "name", tc.get("name", "unknown") if isinstance(tc, dict) else "unknown"
+                    ),
+                    "arguments": getattr(
+                        tc, "arguments", tc.get("arguments", {}) if isinstance(tc, dict) else {}
+                    ),
+                    "result": getattr(
+                        tc, "result", tc.get("result") if isinstance(tc, dict) else None
+                    ),
                 }
                 for tc in tool_calls
             ]
@@ -614,9 +605,21 @@ class MCPToolsAdapter(AgentAdapter):
             calls = []
             for ev in events:
                 if hasattr(ev, "tool_name") or (isinstance(ev, dict) and "tool_name" in ev):
-                    name = getattr(ev, "tool_name", ev.get("tool_name")) if isinstance(ev, dict) else getattr(ev, "tool_name", "unknown")
-                    args = getattr(ev, "arguments", ev.get("arguments", {})) if isinstance(ev, dict) else getattr(ev, "arguments", {})
-                    res = getattr(ev, "result", ev.get("result")) if isinstance(ev, dict) else getattr(ev, "result", None)
+                    name = (
+                        getattr(ev, "tool_name", ev.get("tool_name"))
+                        if isinstance(ev, dict)
+                        else getattr(ev, "tool_name", "unknown")
+                    )
+                    args = (
+                        getattr(ev, "arguments", ev.get("arguments", {}))
+                        if isinstance(ev, dict)
+                        else getattr(ev, "arguments", {})
+                    )
+                    res = (
+                        getattr(ev, "result", ev.get("result"))
+                        if isinstance(ev, dict)
+                        else getattr(ev, "result", None)
+                    )
                     calls.append({"name": name, "arguments": args, "result": res})
             if calls:
                 return calls

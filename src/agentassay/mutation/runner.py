@@ -64,6 +64,7 @@ logger = logging.getLogger(__name__)
 # Default operator set
 # ===================================================================
 
+
 def _build_default_operators(seed: int | None = None) -> list[MutationOperator]:
     """Construct the full set of 12 default mutation operators.
 
@@ -77,6 +78,7 @@ def _build_default_operators(seed: int | None = None) -> list[MutationOperator]:
         Optional base seed. Each operator receives ``seed + offset``
         for reproducible but independent randomness.
     """
+
     def _seed(offset: int) -> int | None:
         return seed + offset if seed is not None else None
 
@@ -307,17 +309,13 @@ class MutationRunner:
         start_time = time.monotonic()
 
         # --- Step 1: Execute original -----------------------------------------
-        original_trace, original_error = self._execute_agent(
-            self._config, scenario.input_data
-        )
+        original_trace, original_error = self._execute_agent(self._config, scenario.input_data)
         original_score = self._evaluate(original_trace, evaluator)
         original_passed = original_score >= 0.5 if original_trace else False
 
         # --- Step 2: Apply mutation -------------------------------------------
         try:
-            mutated_config, mutated_scenario = operator.mutate(
-                self._config, scenario
-            )
+            mutated_config, mutated_scenario = operator.mutate(self._config, scenario)
             mutation_desc = operator.describe_mutation()
         except Exception as exc:
             elapsed_ms = (time.monotonic() - start_time) * 1000.0
@@ -427,7 +425,10 @@ class MutationRunner:
         for i, op in enumerate(ops, 1):
             logger.debug(
                 "Running mutation %d/%d: %s (%s)",
-                i, len(ops), op.name, op.category,
+                i,
+                len(ops),
+                op.name,
+                op.category,
             )
             result = self.run_mutation(scenario, op, evaluator=evaluator)
             results.append(result)
@@ -435,8 +436,11 @@ class MutationRunner:
             status = "KILLED" if result.killed else "SURVIVED"
             logger.debug(
                 "  %s [%s] — original=%.2f, mutant=%.2f (delta=%.3f)",
-                status, op.name, result.original_score,
-                result.mutant_score, result.score_delta,
+                status,
+                op.name,
+                result.original_score,
+                result.mutant_score,
+                result.score_delta,
             )
 
         # --- Aggregate statistics ---------------------------------------------
@@ -447,9 +451,7 @@ class MutationRunner:
         mutation_score = killed / total if total > 0 else 0.0
 
         # Per-category breakdown
-        category_counts: dict[str, dict[str, int]] = defaultdict(
-            lambda: {"total": 0, "killed": 0}
-        )
+        category_counts: dict[str, dict[str, int]] = defaultdict(lambda: {"total": 0, "killed": 0})
         for r in results:
             if r.error is None:
                 category_counts[r.operator_category]["total"] += 1
@@ -459,9 +461,7 @@ class MutationRunner:
         per_category: dict[str, float] = {}
         for cat, counts in sorted(category_counts.items()):
             if counts["total"] > 0:
-                per_category[cat] = round(
-                    counts["killed"] / counts["total"], 4
-                )
+                per_category[cat] = round(counts["killed"] / counts["total"], 4)
             else:
                 per_category[cat] = 0.0
 
@@ -481,10 +481,12 @@ class MutationRunner:
         )
 
         logger.info(
-            "Mutation suite complete: %d/%d killed (score=%.1f%%), "
-            "%d errored, %.0fms total",
-            killed, total, mutation_score * 100,
-            errored, suite_duration_ms,
+            "Mutation suite complete: %d/%d killed (score=%.1f%%), %d errored, %.0fms total",
+            killed,
+            total,
+            mutation_score * 100,
+            errored,
+            suite_duration_ms,
         )
 
         return suite_result

@@ -22,7 +22,6 @@ import json
 import logging
 import math
 from collections import Counter
-from datetime import datetime, timezone
 from typing import Any
 
 import numpy as np
@@ -195,9 +194,7 @@ class BehavioralFingerprint(BaseModel):
         structure_hash = _structure_hash(output_data)
 
         # --- Reasoning patterns ---
-        tool_sequence = "->".join(
-            s.tool_name for s in steps if s.tool_name is not None
-        )
+        tool_sequence = "->".join(s.tool_name for s in steps if s.tool_name is not None)
         reasoning_depth = _avg_step_content_length(steps)
 
         # --- Error / recovery ---
@@ -363,8 +360,8 @@ class BehavioralFingerprint(BaseModel):
             )
 
         # -- Vectorize --
-        X1 = np.array([fp.to_vector() for fp in baseline_fps], dtype=np.float64)
-        X2 = np.array([fp.to_vector() for fp in candidate_fps], dtype=np.float64)
+        X1 = np.array([fp.to_vector() for fp in baseline_fps], dtype=np.float64)  # noqa: N806
+        X2 = np.array([fp.to_vector() for fp in candidate_fps], dtype=np.float64)  # noqa: N806
 
         n1, p = X1.shape
         n2 = X2.shape[0]
@@ -375,19 +372,19 @@ class BehavioralFingerprint(BaseModel):
 
         # -- Pooled covariance --
         # Using unbiased estimators (ddof=1), then pooling
-        S1 = np.cov(X1, rowvar=False, ddof=1)
-        S2 = np.cov(X2, rowvar=False, ddof=1)
+        S1 = np.cov(X1, rowvar=False, ddof=1)  # noqa: N806
+        S2 = np.cov(X2, rowvar=False, ddof=1)  # noqa: N806
 
         # Handle edge case: np.cov returns a scalar when p==1
         if S1.ndim == 0:
-            S1 = np.array([[float(S1)]])
-            S2 = np.array([[float(S2)]])
+            S1 = np.array([[float(S1)]])  # noqa: N806
+            S2 = np.array([[float(S2)]])  # noqa: N806
 
-        S_pooled = ((n1 - 1) * S1 + (n2 - 1) * S2) / (n1 + n2 - 2)
+        S_pooled = ((n1 - 1) * S1 + (n2 - 1) * S2) / (n1 + n2 - 2)  # noqa: N806
 
         # -- Attempt inversion --
         try:
-            S_inv = np.linalg.inv(S_pooled)
+            S_inv = np.linalg.inv(S_pooled)  # noqa: N806
 
             # Hotelling's T²
             t2 = (n1 * n2) / (n1 + n2) * diff @ S_inv @ diff
@@ -412,9 +409,7 @@ class BehavioralFingerprint(BaseModel):
             )
             corrected_alpha = alpha / p
             for dim in range(p):
-                _, pval = scipy_stats.ttest_ind(
-                    X1[:, dim], X2[:, dim], equal_var=False
-                )
+                _, pval = scipy_stats.ttest_ind(X1[:, dim], X2[:, dim], equal_var=False)
                 if pval < corrected_alpha:
                     return True
 
@@ -456,7 +451,7 @@ def _max_tool_chain(steps: list[StepTrace]) -> int:
 
 
 def _count_backtracks(steps: list[StepTrace]) -> int:
-    """Count retry/correction patterns (explicit actions, metadata flags, or consecutive same-tool calls)."""
+    """Count retry/correction patterns (explicit actions, metadata flags, consecutive calls)."""  # noqa: E501
     count = 0
 
     for i, step in enumerate(steps):

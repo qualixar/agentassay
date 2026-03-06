@@ -14,11 +14,9 @@ from pathlib import Path
 
 import pytest
 
-from agentassay.core.models import ExecutionTrace
 from agentassay.efficiency.trace_store import TraceStore
 
-from .conftest import make_trace, make_traces, make_regressed_traces
-
+from .conftest import make_regressed_traces, make_trace, make_traces
 
 # ===================================================================
 # TraceStore — basic record and query
@@ -127,9 +125,7 @@ class TestTraceStoreOfflineAnalytics:
         for t in make_traces(30, agent_id="stable-agent"):
             store.record(t, metadata={"agent_id": "stable-agent"})
 
-        drift_results = store.drift_detection(
-            agent_id="stable-agent", window_size=10, step_size=5
-        )
+        drift_results = store.drift_detection(agent_id="stable-agent", window_size=10, step_size=5)
 
         # All windows should be present
         assert len(drift_results) > 0

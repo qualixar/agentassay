@@ -63,16 +63,6 @@ References:
 # ---------------------------------------------------------------------------
 # Behavioral Fingerprinting
 # ---------------------------------------------------------------------------
-from agentassay.efficiency.fingerprint import (
-    BehavioralFingerprint,
-)
-from agentassay.efficiency.distribution import (
-    FingerprintDistribution,
-)
-from agentassay.efficiency.regression import (
-    fingerprint_regression_test,
-)
-
 # ---------------------------------------------------------------------------
 # Adaptive Budget Optimization
 # ---------------------------------------------------------------------------
@@ -80,12 +70,11 @@ from agentassay.efficiency.budget import (
     AdaptiveBudgetOptimizer,
     BudgetEstimate,
 )
-
-# ---------------------------------------------------------------------------
-# Trace-First Testing (persistent trace store)
-# ---------------------------------------------------------------------------
-from agentassay.efficiency.trace_store import (
-    TraceStore,
+from agentassay.efficiency.distribution import (
+    FingerprintDistribution,
+)
+from agentassay.efficiency.fingerprint import (
+    BehavioralFingerprint,
 )
 
 # ---------------------------------------------------------------------------
@@ -93,6 +82,16 @@ from agentassay.efficiency.trace_store import (
 # ---------------------------------------------------------------------------
 from agentassay.efficiency.multi_fidelity import (
     MultiFidelityTester,
+)
+from agentassay.efficiency.regression import (
+    fingerprint_regression_test,
+)
+
+# ---------------------------------------------------------------------------
+# Trace-First Testing (persistent trace store)
+# ---------------------------------------------------------------------------
+from agentassay.efficiency.trace_store import (
+    TraceStore,
 )
 
 # ---------------------------------------------------------------------------

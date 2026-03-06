@@ -45,29 +45,19 @@ _COMPARISON_OPS: dict[str, Callable[[Any, Any], bool]] = {
 }
 
 # Pattern: `identifier op value` or `not func(args)`
-_COMPARISON_RE = re.compile(
-    r"^(\w+)\s*(<=|>=|!=|==|<|>)\s*(.+)$"
-)
+_COMPARISON_RE = re.compile(r"^(\w+)\s*(<=|>=|!=|==|<|>)\s*(.+)$")
 
 # Pattern: function call like `uses_tool('search')` or `output_contains('hello')`
-_FUNC_CALL_RE = re.compile(
-    r"""^(\w+)\(\s*['"]([^'"]*)['"]\s*\)$"""
-)
+_FUNC_CALL_RE = re.compile(r"""^(\w+)\(\s*['"]([^'"]*)['"]\s*\)$""")
 
 # Pattern: negated function call like `not uses_tool('delete_database')`
-_NOT_FUNC_RE = re.compile(
-    r"""^not\s+(\w+)\(\s*['"]([^'"]*)['"]\s*\)$"""
-)
+_NOT_FUNC_RE = re.compile(r"""^not\s+(\w+)\(\s*['"]([^'"]*)['"]\s*\)$""")
 
 # Pattern: bare identifier like `success`
-_BARE_IDENT_RE = re.compile(
-    r"^(\w+)$"
-)
+_BARE_IDENT_RE = re.compile(r"^(\w+)$")
 
 # Pattern: negated bare identifier like `not success`
-_NOT_BARE_RE = re.compile(
-    r"^not\s+(\w+)$"
-)
+_NOT_BARE_RE = re.compile(r"^not\s+(\w+)$")
 
 
 # ---------------------------------------------------------------------------
@@ -308,6 +298,5 @@ def _evaluate_comparison(
         return bool(result), f"{ident} = {lhs} (threshold: {op_str} {rhs})"
     except TypeError:
         return False, (
-            f"type mismatch: cannot compare {type(lhs).__name__} "
-            f"{op_str} {type(rhs).__name__}"
+            f"type mismatch: cannot compare {type(lhs).__name__} {op_str} {type(rhs).__name__}"
         )

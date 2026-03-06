@@ -8,18 +8,12 @@ Target: ~20 tests.
 
 from __future__ import annotations
 
-from typing import Any
-
-import pytest
-
-from agentassay.core.models import AgentConfig, ExecutionTrace, TestScenario
 from agentassay.mutation.operators import (
     ContextNoiseMutator,
     ContextPermutationMutator,
     ContextTruncationMutator,
     ModelSwapMutator,
     ModelVersionMutator,
-    MutationOperator,
     PromptDropMutator,
     PromptNoiseMutator,
     PromptOrderMutator,
@@ -33,16 +27,13 @@ from agentassay.mutation.runner import (
     MutationRunner,
     MutationSuiteResult,
 )
-
 from tests.conftest import (
     make_agent_config,
     make_assay_config,
     make_scenario,
-    make_trace,
     mutation_agent,
     mutation_agent_sensitive,
 )
-
 
 # ===================================================================
 # Individual mutation operators
@@ -92,9 +83,7 @@ class TestToolMutators:
     """Tests for tool mutation operators."""
 
     def _config_with_tools(self):
-        return make_agent_config(
-            parameters={"tools": ["search", "calculate", "write"]}
-        )
+        return make_agent_config(parameters={"tools": ["search", "calculate", "write"]})
 
     def test_removal_mutator(self):
         mutator = ToolRemovalMutator(seed=42)
@@ -145,7 +134,11 @@ class TestContextMutators:
         return make_scenario(
             input_data={
                 "query": "What is the capital of France?",
-                "context": ["Paris is the capital.", "France is in Europe.", "The Eiffel Tower is in Paris."],
+                "context": [
+                    "Paris is the capital.",
+                    "France is in Europe.",
+                    "The Eiffel Tower is in Paris.",
+                ],
             }
         )
 
@@ -268,9 +261,7 @@ class TestMutationRunner:
         assert suite.mutation_score == 0.0
 
     def test_per_category_breakdown(self):
-        config = make_agent_config(
-            parameters={"system_prompt": "Be helpful.", "tools": ["search"]}
-        )
+        config = make_agent_config(parameters={"system_prompt": "Be helpful.", "tools": ["search"]})
         assay = make_assay_config()
         ops = [
             PromptSynonymMutator(seed=1),

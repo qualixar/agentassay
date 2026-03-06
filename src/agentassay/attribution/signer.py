@@ -17,7 +17,6 @@ from __future__ import annotations
 
 import hashlib
 import hmac
-import json
 import secrets
 from datetime import datetime, timezone
 from pathlib import Path
@@ -168,9 +167,7 @@ class QualixarSigner:
             # Generate new key
             key_bytes = secrets.token_bytes(32)
             self.DEFAULT_KEY_PATH.parent.mkdir(parents=True, exist_ok=True)
-            self.DEFAULT_KEY_PATH.write_text(
-                key_bytes.hex(), encoding="utf-8"
-            )
+            self.DEFAULT_KEY_PATH.write_text(key_bytes.hex(), encoding="utf-8")
             # Secure permissions (readable only by owner)
             self.DEFAULT_KEY_PATH.chmod(0o600)
             return key_bytes

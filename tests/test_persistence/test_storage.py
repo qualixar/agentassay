@@ -11,14 +11,12 @@ from __future__ import annotations
 import json
 import sqlite3
 import threading
-import uuid
 from pathlib import Path
 from typing import Any
 
 import pytest
 
 from agentassay.persistence.storage import ResultStore
-
 
 # ===================================================================
 # Helpers
@@ -68,8 +66,14 @@ class TestSchemaCreation:
         """All 8 expected tables exist after initialization."""
         store = ResultStore(tmp_path / "test.db")
         expected_tables = [
-            "projects", "runs", "trials", "verdicts",
-            "coverage", "fingerprints", "gate_decisions", "costs",
+            "projects",
+            "runs",
+            "trials",
+            "verdicts",
+            "coverage",
+            "fingerprints",
+            "gate_decisions",
+            "costs",
         ]
         for table in expected_tables:
             assert store.table_exists(table), f"Table '{table}' not found"
@@ -80,17 +84,20 @@ class TestSchemaCreation:
         conn = store._connect()
         try:
             rows = conn.execute(
-                "SELECT name FROM sqlite_master WHERE type='index' "
-                "AND name LIKE 'idx_%'"
+                "SELECT name FROM sqlite_master WHERE type='index' AND name LIKE 'idx_%'"
             ).fetchall()
             index_names = {r["name"] for r in rows}
         finally:
             conn.close()
 
         expected = {
-            "idx_runs_project", "idx_trials_run", "idx_verdicts_run",
-            "idx_coverage_run", "idx_fingerprints_run",
-            "idx_gate_decisions_pipeline", "idx_costs_run",
+            "idx_runs_project",
+            "idx_trials_run",
+            "idx_verdicts_run",
+            "idx_coverage_run",
+            "idx_fingerprints_run",
+            "idx_gate_decisions_pipeline",
+            "idx_costs_run",
         }
         assert expected.issubset(index_names)
 
@@ -199,15 +206,17 @@ class TestTrialsCrud:
         """All trial fields are persisted and retrievable."""
         store = ResultStore(tmp_path / "test.db")
         rid = store.save_run(**_make_run_kwargs())
-        tid = store.save_trial(**_make_trial_kwargs(
-            rid,
-            success=False,
-            latency_ms=999.9,
-            cost=0.05,
-            token_count=1200,
-            step_count=7,
-            error_msg="timeout",
-        ))
+        tid = store.save_trial(
+            **_make_trial_kwargs(
+                rid,
+                success=False,
+                latency_ms=999.9,
+                cost=0.05,
+                token_count=1200,
+                step_count=7,
+                error_msg="timeout",
+            )
+        )
 
         trials = store.get_trials(rid)
         assert len(trials) == 1
@@ -272,11 +281,15 @@ class TestCoverageCrud:
         store = ResultStore(tmp_path / "test.db")
         rid = store.save_run(**_make_run_kwargs())
         store.save_coverage(
-            run_id=rid, dimension="tool", score=0.85,
+            run_id=rid,
+            dimension="tool",
+            score=0.85,
             details_json=json.dumps({"tools_covered": 5}),
         )
         store.save_coverage(
-            run_id=rid, dimension="path", score=0.70,
+            run_id=rid,
+            dimension="path",
+            score=0.70,
         )
         records = store.get_coverage(rid)
         assert len(records) == 2
@@ -350,9 +363,12 @@ class TestCostsCrud:
         store = ResultStore(tmp_path / "test.db")
         rid = store.save_run(**_make_run_kwargs())
         store.save_cost(
-            run_id=rid, model="gpt-4o",
-            input_tokens=5000, output_tokens=1000,
-            total_cost=0.08, trial_count=10,
+            run_id=rid,
+            model="gpt-4o",
+            input_tokens=5000,
+            output_tokens=1000,
+            total_cost=0.08,
+            trial_count=10,
         )
         costs = store.get_costs(rid)
         assert len(costs) == 1
@@ -431,18 +447,17 @@ class TestThreadSafety:
         def _write_trials(thread_idx: int) -> None:
             try:
                 for j in range(trials_per_thread):
-                    store.save_trial(**_make_trial_kwargs(
-                        rid,
-                        trial_num=thread_idx * 100 + j,
-                        scenario_id=f"scenario-{thread_idx}",
-                    ))
+                    store.save_trial(
+                        **_make_trial_kwargs(
+                            rid,
+                            trial_num=thread_idx * 100 + j,
+                            scenario_id=f"scenario-{thread_idx}",
+                        )
+                    )
             except Exception as exc:
                 errors.append(exc)
 
-        threads = [
-            threading.Thread(target=_write_trials, args=(i,))
-            for i in range(num_threads)
-        ]
+        threads = [threading.Thread(target=_write_trials, args=(i,)) for i in range(num_threads)]
         for t in threads:
             t.start()
         for t in threads:

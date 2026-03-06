@@ -39,9 +39,7 @@ logger = logging.getLogger(__name__)
 # Constants
 # ---------------------------------------------------------------------------
 
-_VALID_CONSTRAINT_TYPES = frozenset(
-    {"precondition", "postcondition", "invariant", "guardrail"}
-)
+_VALID_CONSTRAINT_TYPES = frozenset({"precondition", "postcondition", "invariant", "guardrail"})
 
 _VALID_SEVERITIES = frozenset({"hard", "soft"})
 
@@ -50,6 +48,7 @@ _VALID_SEVERITIES = frozenset({"hard", "soft"})
 # Errors
 # ---------------------------------------------------------------------------
 
+
 class ContractLoadError(Exception):
     """Raised when a contract YAML file cannot be loaded or validated."""
 
@@ -57,6 +56,7 @@ class ContractLoadError(Exception):
 # ---------------------------------------------------------------------------
 # Loader
 # ---------------------------------------------------------------------------
+
 
 class ContractLoader:
     """Load and validate contract YAML files or dicts.
@@ -99,9 +99,7 @@ class ContractLoader:
         resolved = Path(path).expanduser().resolve()
 
         if not resolved.is_file():
-            raise FileNotFoundError(
-                f"Contract file not found: {resolved}"
-            )
+            raise FileNotFoundError(f"Contract file not found: {resolved}")
 
         try:
             import yaml
@@ -115,9 +113,7 @@ class ContractLoader:
             with open(resolved, encoding="utf-8") as fh:
                 raw = yaml.safe_load(fh)
         except yaml.YAMLError as exc:
-            raise ContractLoadError(
-                f"Failed to parse YAML from {resolved}: {exc}"
-            ) from exc
+            raise ContractLoadError(f"Failed to parse YAML from {resolved}: {exc}") from exc
 
         if not isinstance(raw, dict):
             raise ContractLoadError(
@@ -147,9 +143,7 @@ class ContractLoader:
             If required fields are missing or have invalid values.
         """
         if not isinstance(data, dict):
-            raise ContractLoadError(
-                f"Expected a dict, got {type(data).__name__}"
-            )
+            raise ContractLoadError(f"Expected a dict, got {type(data).__name__}")
 
         # --- Top-level contract key ---
         if "contract" not in data:
@@ -160,16 +154,12 @@ class ContractLoader:
 
         contract = data["contract"]
         if not isinstance(contract, dict):
-            raise ContractLoadError(
-                f"'contract' must be a mapping, got {type(contract).__name__}"
-            )
+            raise ContractLoadError(f"'contract' must be a mapping, got {type(contract).__name__}")
 
         # --- contract.name ---
         name = contract.get("name")
         if not name or not isinstance(name, str) or not name.strip():
-            raise ContractLoadError(
-                "contract.name is required and must be a non-empty string"
-            )
+            raise ContractLoadError("contract.name is required and must be a non-empty string")
         contract["name"] = name.strip()
 
         # --- contract.version (optional, default "1.0") ---
@@ -186,19 +176,14 @@ class ContractLoader:
             constraints = []
         if not isinstance(constraints, list):
             raise ContractLoadError(
-                f"contract.constraints must be a list, "
-                f"got {type(constraints).__name__}"
+                f"contract.constraints must be a list, got {type(constraints).__name__}"
             )
 
         validated: list[dict[str, Any]] = []
         seen_names: set[str] = set()
 
         for idx, raw_constraint in enumerate(constraints):
-            validated.append(
-                ContractLoader._validate_constraint(
-                    raw_constraint, idx, seen_names
-                )
-            )
+            validated.append(ContractLoader._validate_constraint(raw_constraint, idx, seen_names))
 
         contract["constraints"] = validated
         return data
@@ -235,22 +220,16 @@ class ContractLoader:
         prefix = f"constraints[{idx}]"
 
         if not isinstance(raw, dict):
-            raise ContractLoadError(
-                f"{prefix}: expected a mapping, got {type(raw).__name__}"
-            )
+            raise ContractLoadError(f"{prefix}: expected a mapping, got {type(raw).__name__}")
 
         # --- name ---
         c_name = raw.get("name")
         if not c_name or not isinstance(c_name, str) or not c_name.strip():
-            raise ContractLoadError(
-                f"{prefix}: 'name' is required and must be a non-empty string"
-            )
+            raise ContractLoadError(f"{prefix}: 'name' is required and must be a non-empty string")
         c_name = c_name.strip()
 
         if c_name in seen_names:
-            raise ContractLoadError(
-                f"{prefix}: duplicate constraint name '{c_name}'"
-            )
+            raise ContractLoadError(f"{prefix}: duplicate constraint name '{c_name}'")
         seen_names.add(c_name)
 
         # --- type ---
@@ -269,9 +248,7 @@ class ContractLoader:
         # --- severity ---
         c_severity = raw.get("severity", "hard")
         if not isinstance(c_severity, str):
-            raise ContractLoadError(
-                f"{prefix} ('{c_name}'): 'severity' must be a string"
-            )
+            raise ContractLoadError(f"{prefix} ('{c_name}'): 'severity' must be a string")
         c_severity = c_severity.strip().lower()
         if c_severity not in _VALID_SEVERITIES:
             raise ContractLoadError(
@@ -283,8 +260,7 @@ class ContractLoader:
         c_condition = raw.get("condition")
         if not c_condition or not isinstance(c_condition, str) or not c_condition.strip():
             raise ContractLoadError(
-                f"{prefix} ('{c_name}'): 'condition' is required and "
-                "must be a non-empty string"
+                f"{prefix} ('{c_name}'): 'condition' is required and must be a non-empty string"
             )
         c_condition = c_condition.strip()
 

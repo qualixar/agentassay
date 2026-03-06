@@ -46,16 +46,13 @@ def render_test_run(query_api: QueryAPI, store: ResultStore) -> None:
 
     runs = query_api.list_runs(limit=20)
     if not runs:
-        empty_state(
-            "No test runs yet. Run <code>agentassay run</code> to get started."
-        )
+        empty_state("No test runs yet. Run <code>agentassay run</code> to get started.")
         return
 
     # ── Run selector ───────────────────────────────────────────────────
 
     run_labels = [
-        f"{r['agent_name']} / {r['model']} — {_short_ts(r.get('started_at'))}"
-        for r in runs
+        f"{r['agent_name']} / {r['model']} — {_short_ts(r.get('started_at'))}" for r in runs
     ]
     selected_idx = st.selectbox(
         "Select a run",
@@ -105,7 +102,7 @@ def _render_run_header(run: dict[str, Any]) -> None:
     with c3:
         metric_card("Framework", run.get("framework", "--"))
     with c4:
-        st.markdown(f"**Status**")
+        st.markdown("**Status**")
         st.markdown(status_badge(run.get("status")))
     with c5:
         metric_card("Cost", format_cost(run.get("total_cost")))

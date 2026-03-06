@@ -47,9 +47,7 @@ class ResultStoreReaderMixin:
         """
         conn = self._connect()  # type: ignore[attr-defined]
         try:
-            row = conn.execute(
-                "SELECT * FROM runs WHERE id = ?", (run_id,)
-            ).fetchone()
+            row = conn.execute("SELECT * FROM runs WHERE id = ?", (run_id,)).fetchone()
             return dict(row) if row else None
         finally:
             conn.close()
@@ -93,7 +91,8 @@ class ResultStoreReaderMixin:
         conn = self._connect()  # type: ignore[attr-defined]
         try:
             rows = conn.execute(
-                "SELECT * FROM verdicts WHERE run_id = ?", (run_id,),
+                "SELECT * FROM verdicts WHERE run_id = ?",
+                (run_id,),
             ).fetchall()
             return [dict(r) for r in rows]
         finally:
@@ -115,7 +114,8 @@ class ResultStoreReaderMixin:
         conn = self._connect()  # type: ignore[attr-defined]
         try:
             rows = conn.execute(
-                "SELECT * FROM coverage WHERE run_id = ?", (run_id,),
+                "SELECT * FROM coverage WHERE run_id = ?",
+                (run_id,),
             ).fetchall()
             return [dict(r) for r in rows]
         finally:
@@ -137,7 +137,8 @@ class ResultStoreReaderMixin:
         conn = self._connect()  # type: ignore[attr-defined]
         try:
             rows = conn.execute(
-                "SELECT * FROM fingerprints WHERE run_id = ?", (run_id,),
+                "SELECT * FROM fingerprints WHERE run_id = ?",
+                (run_id,),
             ).fetchall()
             return [dict(r) for r in rows]
         finally:
@@ -159,7 +160,8 @@ class ResultStoreReaderMixin:
         conn = self._connect()  # type: ignore[attr-defined]
         try:
             rows = conn.execute(
-                "SELECT * FROM gate_decisions WHERE run_id = ?", (run_id,),
+                "SELECT * FROM gate_decisions WHERE run_id = ?",
+                (run_id,),
             ).fetchall()
             return [dict(r) for r in rows]
         finally:
@@ -181,7 +183,8 @@ class ResultStoreReaderMixin:
         conn = self._connect()  # type: ignore[attr-defined]
         try:
             rows = conn.execute(
-                "SELECT * FROM costs WHERE run_id = ?", (run_id,),
+                "SELECT * FROM costs WHERE run_id = ?",
+                (run_id,),
             ).fetchall()
             return [dict(r) for r in rows]
         finally:
@@ -207,8 +210,7 @@ class ResultStoreReaderMixin:
         conn = self._connect()  # type: ignore[attr-defined]
         try:
             row = conn.execute(
-                "SELECT COUNT(*) FROM sqlite_master "
-                "WHERE type='table' AND name=?",
+                "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name=?",
                 (table_name,),
             ).fetchone()
             return row[0] > 0 if row else False
@@ -235,10 +237,7 @@ class ResultStoreReaderMixin:
             If ``table_name`` is not a known schema table.
         """
         if table_name not in ALLOWED_TABLES:
-            raise ValueError(
-                f"Unknown table '{table_name}'. "
-                f"Allowed: {sorted(ALLOWED_TABLES)}"
-            )
+            raise ValueError(f"Unknown table '{table_name}'. Allowed: {sorted(ALLOWED_TABLES)}")
         conn = self._connect()  # type: ignore[attr-defined]
         try:
             row = conn.execute(

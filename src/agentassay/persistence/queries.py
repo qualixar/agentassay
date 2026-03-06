@@ -149,10 +149,7 @@ class QueryAPI:
             params.append(status)
 
         where = " AND ".join(clauses) if clauses else "1=1"
-        sql = (
-            f"SELECT * FROM runs WHERE {where} "
-            "ORDER BY started_at DESC LIMIT ? OFFSET ?"
-        )
+        sql = f"SELECT * FROM runs WHERE {where} ORDER BY started_at DESC LIMIT ? OFFSET ?"
         params.extend([limit, offset])
         return self._query(sql, tuple(params))
 
@@ -182,9 +179,7 @@ class QueryAPI:
         list[dict[str, Any]]
             ``[{date, pass_rate, run_count}, ...]`` ordered by date ASC.
         """
-        clauses: list[str] = [
-            "r.started_at >= date('now', ?)"
-        ]
+        clauses: list[str] = ["r.started_at >= date('now', ?)"]
         params: list[Any] = [f"-{days} days"]
 
         if agent_name is not None:
@@ -230,9 +225,7 @@ class QueryAPI:
         list[dict[str, Any]]
             ``[{date, total_cost, run_count}, ...]`` ordered by date ASC.
         """
-        clauses: list[str] = [
-            "started_at >= date('now', ?)"
-        ]
+        clauses: list[str] = ["started_at >= date('now', ?)"]
         params: list[Any] = [f"-{days} days"]
 
         if agent_name is not None:
@@ -366,9 +359,7 @@ class QueryAPI:
         list[dict[str, Any]]
             Gate decisions ordered by ``created_at DESC``.
         """
-        clauses: list[str] = [
-            "created_at >= date('now', ?)"
-        ]
+        clauses: list[str] = ["created_at >= date('now', ?)"]
         params: list[Any] = [f"-{days} days"]
 
         if pipeline is not None:
@@ -413,9 +404,7 @@ class QueryAPI:
                 "last_run_date": None,
             }
 
-        avg_row = self._query_one(
-            "SELECT AVG(pass_rate) AS avg_pass_rate FROM verdicts"
-        )
+        avg_row = self._query_one("SELECT AVG(pass_rate) AS avg_pass_rate FROM verdicts")
         avg_pass = avg_row["avg_pass_rate"] if avg_row else None
 
         return {

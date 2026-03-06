@@ -25,13 +25,11 @@ from rich.panel import Panel
 from rich.table import Table
 
 from agentassay.core.models import ExecutionTrace, StepTrace, TrialResult
-from agentassay.coverage.aggregate import AgentCoverageCollector, CoverageTuple
+from agentassay.coverage.aggregate import AgentCoverageCollector
 from agentassay.efficiency.fingerprint import BehavioralFingerprint
 from agentassay.reporting.html import HTMLReporter
 from agentassay.reporting.json_export import JSONExporter
-from agentassay.statistics.confidence import wilson_interval
-from agentassay.statistics.effect_size import cohens_h
-from agentassay.verdicts.verdict import StochasticVerdict, VerdictFunction
+from agentassay.verdicts.verdict import VerdictFunction
 
 console = Console()
 

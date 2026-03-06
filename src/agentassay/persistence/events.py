@@ -29,7 +29,8 @@ from __future__ import annotations
 import logging
 import threading
 from collections import defaultdict
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -156,6 +157,4 @@ class EventBus:
             Event type names.
         """
         with self._lock:
-            return sorted(
-                k for k, v in self._listeners.items() if v
-            )
+            return sorted(k for k, v in self._listeners.items() if v)

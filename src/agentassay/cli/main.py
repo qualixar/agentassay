@@ -51,13 +51,7 @@ from agentassay.cli.cmd_test_report import test_report_command
 from agentassay.cli.helpers import (  # noqa: F401
     console,
     error_console,
-    extract_passed_list as _extract_passed_list,
-    load_json as _load_json,
-    load_yaml as _load_yaml,
-    verdict_style as _verdict_style,
-    write_json as _write_json,
 )
-
 
 # ===================================================================
 # CLI Group
@@ -74,7 +68,9 @@ def _version_message() -> str:
 
 
 @click.group()
-@click.version_option(version=agentassay.__version__, prog_name="agentassay", message=_version_message())
+@click.version_option(
+    version=agentassay.__version__, prog_name="agentassay", message=_version_message()
+)
 def cli() -> None:
     """AgentAssay: Formal regression testing for AI agents.
 

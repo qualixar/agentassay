@@ -46,7 +46,11 @@ from agentassay.integrations.base import (
 )
 from agentassay.integrations.vertex_helpers import (
     classify_part as _classify_part,
+)
+from agentassay.integrations.vertex_helpers import (
     extract_grounding_step as _extract_grounding_step,
+)
+from agentassay.integrations.vertex_helpers import (
     extract_steps as _extract_steps,
 )
 
@@ -63,8 +67,8 @@ _INSTALL_HINT = (
 # via the ``pricing`` metadata key.
 # ---------------------------------------------------------------------------
 _DEFAULT_PRICING: dict[str, float] = {
-    "prompt_per_token": 0.000_000_075,      # $0.075 per 1M input tokens
-    "completion_per_token": 0.000_000_30,    # $0.30  per 1M output tokens
+    "prompt_per_token": 0.000_000_075,  # $0.075 per 1M input tokens
+    "completion_per_token": 0.000_000_30,  # $0.30  per 1M output tokens
 }
 
 
@@ -147,9 +151,7 @@ class VertexAIAgentsAdapter(AgentAdapter):
             if isinstance(resolved_model, str) and "/" in resolved_model:
                 resolved_model = resolved_model.rsplit("/", 1)[-1]
 
-        super().__init__(
-            model=resolved_model, agent_name=agent_name, metadata=metadata
-        )
+        super().__init__(model=resolved_model, agent_name=agent_name, metadata=metadata)
         self._generative_model = generative_model
         self._tools = tools
         self._project_id = project_id
@@ -198,9 +200,7 @@ class VertexAIAgentsAdapter(AgentAdapter):
                 gen_kwargs["tools"] = self._tools
 
             call_start = time.perf_counter()
-            response = self._generative_model.generate_content(
-                user_prompt, **gen_kwargs
-            )
+            response = self._generative_model.generate_content(user_prompt, **gen_kwargs)
             call_duration_ms = (time.perf_counter() - call_start) * 1000.0
 
             # Extract steps from response candidates
@@ -332,11 +332,7 @@ class VertexAIAgentsAdapter(AgentAdapter):
                 return str(input_data[key])
 
         # Filter internal keys before serializing
-        filtered = {
-            k: v
-            for k, v in input_data.items()
-            if k not in ("scenario_id", "metadata")
-        }
+        filtered = {k: v for k, v in input_data.items() if k not in ("scenario_id", "metadata")}
         if len(filtered) == 1:
             return str(next(iter(filtered.values())))
 
@@ -346,9 +342,7 @@ class VertexAIAgentsAdapter(AgentAdapter):
 
     # -- Internal: step extraction (delegates to vertex_helpers) ---------------
 
-    def _extract_steps(
-        self, response: Any, total_call_ms: float
-    ) -> list[StepTrace]:
+    def _extract_steps(self, response: Any, total_call_ms: float) -> list[StepTrace]:
         """Extract StepTrace objects from a Vertex AI response.
 
         Delegates to ``vertex_helpers.extract_steps()`` for the actual
@@ -366,9 +360,7 @@ class VertexAIAgentsAdapter(AgentAdapter):
         list[StepTrace]
             Ordered list of steps extracted from the response.
         """
-        return _extract_steps(
-            response, total_call_ms, self._model, self._extract_output
-        )
+        return _extract_steps(response, total_call_ms, self._model, self._extract_output)
 
     def _classify_part(
         self,
@@ -397,9 +389,7 @@ class VertexAIAgentsAdapter(AgentAdapter):
         StepTrace or None
             A step trace, or ``None`` if the part cannot be classified.
         """
-        return _classify_part(
-            part, step_index, per_item_ms, candidate_index, self._model
-        )
+        return _classify_part(part, step_index, per_item_ms, candidate_index, self._model)
 
     def _extract_grounding_step(
         self,
@@ -429,8 +419,11 @@ class VertexAIAgentsAdapter(AgentAdapter):
             A retrieval step.
         """
         return _extract_grounding_step(
-            grounding_metadata, step_index, per_item_ms,
-            candidate_index, self._model,
+            grounding_metadata,
+            step_index,
+            per_item_ms,
+            candidate_index,
+            self._model,
         )
 
     # -- Internal: output extraction ------------------------------------------
@@ -532,12 +525,8 @@ class VertexAIAgentsAdapter(AgentAdapter):
         float
             Estimated cost in USD. Returns ``0.0`` if no tokens were used.
         """
-        prompt_cost = (
-            token_usage.get("prompt_tokens", 0)
-            * self._pricing["prompt_per_token"]
-        )
+        prompt_cost = token_usage.get("prompt_tokens", 0) * self._pricing["prompt_per_token"]
         completion_cost = (
-            token_usage.get("completion_tokens", 0)
-            * self._pricing["completion_per_token"]
+            token_usage.get("completion_tokens", 0) * self._pricing["completion_per_token"]
         )
         return prompt_cost + completion_cost

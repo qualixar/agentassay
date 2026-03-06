@@ -47,9 +47,7 @@ class PathCoverageTracker:
 
     def __init__(self, max_path_depth: int = 10) -> None:
         if max_path_depth < 1:
-            raise ValueError(
-                f"max_path_depth must be >= 1, got {max_path_depth}"
-            )
+            raise ValueError(f"max_path_depth must be >= 1, got {max_path_depth}")
         self._max_depth: int = max_path_depth
         self._paths: set[tuple[str, ...]] = set()
         self._frequency: Counter[tuple[str, ...]] = Counter()
@@ -119,7 +117,7 @@ class PathCoverageTracker:
         max_observed_len = max(len(p) for p in self._paths)
         exponent = min(max_observed_len, self._max_depth)
 
-        estimated_total = n_actions ** exponent
+        estimated_total = n_actions**exponent
         if estimated_total == 0:
             return 0.0
 

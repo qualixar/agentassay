@@ -42,7 +42,6 @@ from agentassay.coverage.path_coverage import PathCoverageTracker
 from agentassay.coverage.state_coverage import StateCoverageTracker
 from agentassay.coverage.tool_coverage import ToolCoverageTracker
 
-
 # ===================================================================
 # CoverageTuple — the frozen 5D snapshot
 # ===================================================================

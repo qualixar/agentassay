@@ -53,22 +53,19 @@ from __future__ import annotations
 
 import gzip
 import json
-import os
 import shutil
-import time
 from collections import OrderedDict
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 from agentassay.core.models import ExecutionTrace
-from agentassay.efficiency.fingerprint import (
-    BehavioralFingerprint,
-)
 from agentassay.efficiency.distribution import (
     FingerprintDistribution,
 )
-
+from agentassay.efficiency.fingerprint import (
+    BehavioralFingerprint,
+)
 
 # ===================================================================
 # Custom JSON encoder for Pydantic/datetime serialization
@@ -399,7 +396,7 @@ class TraceStore:
         pos = 0
 
         while pos + window_size <= len(all_traces):
-            window_traces = all_traces[pos: pos + window_size]
+            window_traces = all_traces[pos : pos + window_size]
             window_fps = [BehavioralFingerprint.from_trace(t) for t in window_traces]
             window_dist = FingerprintDistribution(window_fps)
 
@@ -409,16 +406,18 @@ class TraceStore:
             start_ts = window_traces[0].timestamp.isoformat()
             end_ts = window_traces[-1].timestamp.isoformat()
 
-            results.append({
-                "window_index": window_idx,
-                "start_time": start_ts,
-                "end_time": end_ts,
-                "drift_detected": test_result["regression_detected"],
-                "p_value": test_result["p_value"],
-                "distance": test_result["distance"],
-                "behavioral_variance": window_dist.behavioral_variance,
-                "changed_dimensions": test_result.get("changed_dimensions", []),
-            })
+            results.append(
+                {
+                    "window_index": window_idx,
+                    "start_time": start_ts,
+                    "end_time": end_ts,
+                    "drift_detected": test_result["regression_detected"],
+                    "p_value": test_result["p_value"],
+                    "distance": test_result["distance"],
+                    "behavioral_variance": window_dist.behavioral_variance,
+                    "changed_dimensions": test_result.get("changed_dimensions", []),
+                }
+            )
 
             pos += step_size
             window_idx += 1
@@ -437,9 +436,7 @@ class TraceStore:
         list[str]
             Unique agent identifiers.
         """
-        return sorted({
-            entry.get("agent_id", "unknown") for entry in self._index.values()
-        })
+        return sorted({entry.get("agent_id", "unknown") for entry in self._index.values()})
 
     def list_scenarios(self, agent_id: str | None = None) -> list[str]:
         """List all unique scenario_ids, optionally filtered by agent.
@@ -537,7 +534,7 @@ class TraceStore:
         """Load the index from disk, or return empty OrderedDict if not found."""
         if self._index_path.exists():
             try:
-                with open(self._index_path, "r") as f:
+                with open(self._index_path) as f:
                     data = json.load(f, object_pairs_hook=OrderedDict)
                 if isinstance(data, dict):
                     # Ensure we always return an OrderedDict for LRU semantics

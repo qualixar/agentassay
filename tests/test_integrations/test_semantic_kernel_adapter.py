@@ -13,20 +13,18 @@ Target: 20+ tests.
 
 from __future__ import annotations
 
-import time
 from typing import Any
-from unittest.mock import MagicMock, PropertyMock, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
-from agentassay.core.models import AgentConfig, ExecutionTrace, StepTrace
+from agentassay.core.models import AgentConfig, ExecutionTrace
 from agentassay.integrations.base import FrameworkNotInstalledError
 from agentassay.integrations.semantic_kernel_adapter import (
+    _INSTALL_HINT,
     SemanticKernelAdapter,
     _check_semantic_kernel_installed,
-    _INSTALL_HINT,
 )
-
 
 # ===================================================================
 # Helpers
@@ -78,10 +76,7 @@ def _patch_sk_imports():
             ...
     """
     # Patch the install check to be a no-op
-    p1 = patch(
-        "agentassay.integrations.semantic_kernel_adapter"
-        "._check_semantic_kernel_installed"
-    )
+    p1 = patch("agentassay.integrations.semantic_kernel_adapter._check_semantic_kernel_installed")
     # Patch the KernelArguments import inside _build_kernel_arguments
     mock_ka = MagicMock()
     mock_ka.side_effect = lambda **kw: kw  # Just return kwargs as dict
@@ -150,9 +145,7 @@ class TestAdapterCreation:
     def test_custom_agent_name(self):
         """Custom agent name is respected."""
         kernel = _make_mock_kernel()
-        adapter = SemanticKernelAdapter(
-            kernel=kernel, agent_name="my-sk-agent"
-        )
+        adapter = SemanticKernelAdapter(kernel=kernel, agent_name="my-sk-agent")
         assert adapter.agent_name == "my-sk-agent"
 
     def test_plugin_and_function_stored(self):
@@ -169,9 +162,7 @@ class TestAdapterCreation:
     def test_metadata_stored(self):
         """Metadata is stored and accessible."""
         kernel = _make_mock_kernel()
-        adapter = SemanticKernelAdapter(
-            kernel=kernel, metadata={"env": "test"}
-        )
+        adapter = SemanticKernelAdapter(kernel=kernel, metadata={"env": "test"})
         assert adapter._metadata == {"env": "test"}
 
     def test_repr(self):
@@ -223,9 +214,7 @@ class TestRunExecution:
 
         p1, p2 = _patch_sk_imports()
         with p1, p2:
-            trace = adapter.run(
-                {"scenario_id": "test-scenario-42", "query": "Hi"}
-            )
+            trace = adapter.run({"scenario_id": "test-scenario-42", "query": "Hi"})
 
         assert trace.scenario_id == "test-scenario-42"
 
@@ -265,8 +254,7 @@ class TestRunExecution:
         adapter = SemanticKernelAdapter(kernel=kernel)
 
         with patch(
-            "agentassay.integrations.semantic_kernel_adapter"
-            "._check_semantic_kernel_installed",
+            "agentassay.integrations.semantic_kernel_adapter._check_semantic_kernel_installed",
             side_effect=FrameworkNotInstalledError(_INSTALL_HINT),
         ):
             with pytest.raises(FrameworkNotInstalledError):
@@ -301,9 +289,7 @@ class TestRunExecution:
         """Adapter-level metadata appears in the trace."""
         result = _make_function_result()
         kernel = _make_mock_kernel(invoke_return=result)
-        adapter = SemanticKernelAdapter(
-            kernel=kernel, model="gpt-4o", metadata={"team": "alpha"}
-        )
+        adapter = SemanticKernelAdapter(kernel=kernel, model="gpt-4o", metadata={"team": "alpha"})
 
         p1, p2 = _patch_sk_imports()
         with p1, p2:
@@ -479,8 +465,7 @@ class TestToCallable:
         adapter = SemanticKernelAdapter(kernel=kernel, model="gpt-4o")
 
         with patch(
-            "agentassay.integrations.semantic_kernel_adapter"
-            "._check_semantic_kernel_installed"
+            "agentassay.integrations.semantic_kernel_adapter._check_semantic_kernel_installed"
         ):
             fn = adapter.to_callable()
 
@@ -492,8 +477,7 @@ class TestToCallable:
         adapter = SemanticKernelAdapter(kernel=kernel, model="gpt-4o")
 
         with patch(
-            "agentassay.integrations.semantic_kernel_adapter"
-            "._check_semantic_kernel_installed"
+            "agentassay.integrations.semantic_kernel_adapter._check_semantic_kernel_installed"
         ):
             fn = adapter.to_callable()
 
@@ -505,8 +489,7 @@ class TestToCallable:
         adapter = SemanticKernelAdapter(kernel=kernel)
 
         with patch(
-            "agentassay.integrations.semantic_kernel_adapter"
-            "._check_semantic_kernel_installed",
+            "agentassay.integrations.semantic_kernel_adapter._check_semantic_kernel_installed",
             side_effect=FrameworkNotInstalledError(_INSTALL_HINT),
         ):
             with pytest.raises(FrameworkNotInstalledError):
@@ -548,9 +531,7 @@ class TestGetConfig:
     def test_config_agent_name(self):
         """Agent name is reflected in the config."""
         kernel = _make_mock_kernel()
-        adapter = SemanticKernelAdapter(
-            kernel=kernel, model="gpt-4o", agent_name="my-bot"
-        )
+        adapter = SemanticKernelAdapter(kernel=kernel, model="gpt-4o", agent_name="my-bot")
         config = adapter.get_config()
         assert config.name == "my-bot"
 
@@ -597,17 +578,13 @@ class TestExtraction:
 
     def test_extract_cost_from_metadata(self):
         """_extract_cost picks up cost from metadata dict."""
-        result = _make_function_result(
-            metadata={"cost": 0.0015}
-        )
+        result = _make_function_result(metadata={"cost": 0.0015})
         cost = SemanticKernelAdapter._extract_cost(result)
         assert cost == 0.0015
 
     def test_extract_cost_from_token_usage_dict(self):
         """_extract_cost estimates from token usage dict."""
-        result = _make_function_result(
-            metadata={"usage": {"total_tokens": 1000}}
-        )
+        result = _make_function_result(metadata={"usage": {"total_tokens": 1000}})
         cost = SemanticKernelAdapter._extract_cost(result)
         assert cost == pytest.approx(0.01, abs=1e-6)
 
@@ -773,18 +750,18 @@ class TestEdgeCases:
 
         p1, p2 = _patch_sk_imports()
         with p1, p2:
-            adapter.run({
-                "scenario_id": "s1",
-                "metadata": {"x": 1},
-                "query": "hello",
-            })
+            adapter.run(
+                {
+                    "scenario_id": "s1",
+                    "metadata": {"x": 1},
+                    "query": "hello",
+                }
+            )
 
         # The invoke call should have been made; inspect the arguments kwarg
         call_kwargs = kernel.invoke.call_args
         # arguments kwarg should be a dict (from our mock KernelArguments)
-        args_passed = call_kwargs.kwargs.get(
-            "arguments", call_kwargs[1].get("arguments")
-        )
+        args_passed = call_kwargs.kwargs.get("arguments", call_kwargs[1].get("arguments"))
         # Should only contain "query", not "scenario_id" or "metadata"
         assert "scenario_id" not in args_passed
         assert "metadata" not in args_passed

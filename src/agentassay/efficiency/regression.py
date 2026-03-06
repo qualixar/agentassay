@@ -28,8 +28,8 @@ from __future__ import annotations
 from typing import Any
 
 from agentassay.core.models import ExecutionTrace
-from agentassay.efficiency.fingerprint import BehavioralFingerprint
 from agentassay.efficiency.distribution import FingerprintDistribution
+from agentassay.efficiency.fingerprint import BehavioralFingerprint
 
 
 def fingerprint_regression_test(
@@ -75,13 +75,9 @@ def fingerprint_regression_test(
         If either trace list has fewer than 2 elements.
     """
     if len(baseline_traces) < 2:
-        raise ValueError(
-            f"Need at least 2 baseline traces, got {len(baseline_traces)}"
-        )
+        raise ValueError(f"Need at least 2 baseline traces, got {len(baseline_traces)}")
     if len(candidate_traces) < 2:
-        raise ValueError(
-            f"Need at least 2 candidate traces, got {len(candidate_traces)}"
-        )
+        raise ValueError(f"Need at least 2 candidate traces, got {len(candidate_traces)}")
 
     baseline_fps = [BehavioralFingerprint.from_trace(t) for t in baseline_traces]
     candidate_fps = [BehavioralFingerprint.from_trace(t) for t in candidate_traces]

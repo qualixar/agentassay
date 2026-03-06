@@ -79,7 +79,7 @@ with st.sidebar:
 
 # ── Persistence layer ──────────────────────────────────────────────────
 
-from agentassay.persistence import QueryAPI, ResultStore
+from agentassay.persistence import QueryAPI, ResultStore  # noqa: E402 - after st.set_page_config
 
 db_path = os.environ.get(
     "AGENTASSAY_DB_PATH",
