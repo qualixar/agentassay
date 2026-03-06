@@ -108,3 +108,4 @@ agentassay-test-report.*
 
 # Wiki pages (pushed to separate wiki repo)
 wiki/
+tests/test_experiments/
