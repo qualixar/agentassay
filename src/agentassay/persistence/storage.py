@@ -1,3 +1,8 @@
+# AgentAssay — Token-efficient stochastic testing for AI agents
+# Part of Qualixar | Author: Varun Pratap Bhardwaj
+# https://qualixar.com | https://varunpratap.com
+# License: Apache-2.0
+
 """SQLite storage engine for AgentAssay test results.
 
 Implements a normalized 8-table schema (projects, runs, trials, verdicts,
@@ -63,10 +68,16 @@ class ResultStore(ResultStoreReaderMixin):
     """
 
     def __init__(self, db_path: str | Path = "~/.agentassay/results.db") -> None:
+        import os
+
         resolved = Path(db_path).expanduser().resolve()
         resolved.parent.mkdir(parents=True, exist_ok=True)
         self._db_path = str(resolved)
         self._init_schema()
+
+        # Security: Set restrictive permissions on the database file
+        if os.path.exists(self._db_path):
+            os.chmod(self._db_path, 0o600)  # Owner read/write only
 
     # -- Context manager ----------------------------------------------------
 

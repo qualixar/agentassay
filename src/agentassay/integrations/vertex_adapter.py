@@ -1,3 +1,8 @@
+# AgentAssay — Token-efficient stochastic testing for AI agents
+# Part of Qualixar | Author: Varun Pratap Bhardwaj
+# https://qualixar.com | https://varunpratap.com
+# License: Apache-2.0
+
 """Google Vertex AI Agents adapter for AgentAssay.
 
 Wraps a Vertex AI ``GenerativeModel`` instance and captures its execution

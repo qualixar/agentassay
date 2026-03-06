@@ -1,3 +1,8 @@
+# AgentAssay — Token-efficient stochastic testing for AI agents
+# Part of Qualixar | Author: Varun Pratap Bhardwaj
+# https://qualixar.com | https://varunpratap.com
+# License: Apache-2.0
+
 """``agentassay dashboard`` — launch the interactive dashboard.
 
 Opens a browser-based dashboard for visualizing test results, historical
@@ -51,13 +56,31 @@ def dashboard_command(
     no_browser: bool,
     theme: str,
 ) -> None:
-    """Launch the interactive AgentAssay dashboard.
+    """Launch the interactive AgentAssay dashboard [EXPERIMENTAL].
 
     Opens a browser-based dashboard for visualizing test results,
     trends, behavioral fingerprints, and gate decisions.
 
+    WARNING: This feature is experimental and may change without notice.
+    Not recommended for production use.
+
     Requires: pip install agentassay[dashboard]
     """
+    # Security: Validate host parameter
+    import re
+    import ipaddress
+
+    if host not in ("localhost", "127.0.0.1", "0.0.0.0"):
+        try:
+            ipaddress.ip_address(host)
+        except ValueError:
+            if not re.match(r'^[a-zA-Z0-9.-]+$', host):
+                raise click.ClickException(f"Invalid host: {host}")
+
+    # Security: Validate port range
+    if not (1024 <= port <= 65535):
+        raise click.ClickException(f"Port must be between 1024 and 65535, got {port}")
+
     try:
         import streamlit  # noqa: F401
     except ImportError:

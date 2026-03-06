@@ -1,3 +1,8 @@
+# AgentAssay — Token-efficient stochastic testing for AI agents
+# Part of Qualixar | Author: Varun Pratap Bhardwaj
+# https://qualixar.com | https://varunpratap.com
+# License: Apache-2.0
+
 """AgentAssay CLI -- command-line interface for agent regression testing.
 
 Provides the ``agentassay`` command with subcommands for running assays,
@@ -55,8 +60,17 @@ from agentassay.cli.helpers import (  # noqa: F401
 # ===================================================================
 
 
+def _version_message() -> str:
+    """Build the version message with Qualixar attribution."""
+    return (
+        f"agentassay, version {agentassay.__version__}\n"
+        f"Part of Qualixar | Author: Varun Pratap Bhardwaj\n"
+        f"https://qualixar.com | Apache-2.0"
+    )
+
+
 @click.group()
-@click.version_option(version=agentassay.__version__, prog_name="agentassay")
+@click.version_option(version=agentassay.__version__, prog_name="agentassay", message=_version_message())
 def cli() -> None:
     """AgentAssay: Formal regression testing for AI agents.
 

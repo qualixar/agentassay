@@ -10,7 +10,10 @@ readme = "README.md"
 license = {text = "Apache-2.0"}
 requires-python = ">=3.10"
 authors = [
-    {name = "Varun Pratap Bhardwaj"},
+    {name = "Varun Pratap Bhardwaj", email = "varun@qualixar.com"},
+]
+maintainers = [
+    {name = "Varun Pratap Bhardwaj", email = "varun@qualixar.com"},
 ]
 keywords = [
     "ai-agents",
@@ -97,9 +100,13 @@ Documentation = "https://qualixar.com/products/agentassay"
 Repository = "https://github.com/qualixar/agentassay"
 Paper = "https://arxiv.org/abs/2603.02601"
 Issues = "https://github.com/qualixar/agentassay/issues"
+Changelog = "https://github.com/qualixar/agentassay/blob/main/CHANGELOG.md"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/agentassay"]
+
+[tool.hatch.build.targets.wheel.shared-data]
+"src/agentassay/py.typed" = "agentassay/py.typed"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

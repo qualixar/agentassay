@@ -1,3 +1,8 @@
+# AgentAssay — Token-efficient stochastic testing for AI agents
+# Part of Qualixar | Author: Varun Pratap Bhardwaj
+# https://qualixar.com | https://varunpratap.com
+# License: Apache-2.0
+
 """Fingerprint Regression Detection — high-level API for behavioral regression testing.
 
 This module provides the top-level ``fingerprint_regression_test`` function,

@@ -1,3 +1,8 @@
+# AgentAssay — Token-efficient stochastic testing for AI agents
+# Part of Qualixar | Author: Varun Pratap Bhardwaj
+# https://qualixar.com | https://varunpratap.com
+# License: Apache-2.0
+
 """Legacy hypothesis testing API — preserved for backward compatibility.
 
 Prefer the structured API in hypothesis.py (fisher_exact_regression,

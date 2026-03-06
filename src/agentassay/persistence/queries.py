@@ -1,3 +1,8 @@
+# AgentAssay — Token-efficient stochastic testing for AI agents
+# Part of Qualixar | Author: Varun Pratap Bhardwaj
+# https://qualixar.com | https://varunpratap.com
+# License: Apache-2.0
+
 """Analytical query API for AgentAssay result data.
 
 Provides read-only trend aggregations, cross-run comparisons, and summary
@@ -271,6 +276,8 @@ class QueryAPI:
             ``[{dimension, avg_score, measurement_count}, ...]``.
         """
         if run_ids:
+            if len(run_ids) > 1000:
+                raise ValueError("Query list too large (maximum 1000 items)")
             placeholders = ",".join("?" for _ in run_ids)
             sql = f"""
                 SELECT

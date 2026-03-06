@@ -1,3 +1,8 @@
+# AgentAssay — Token-efficient stochastic testing for AI agents
+# Part of Qualixar | Author: Varun Pratap Bhardwaj
+# https://qualixar.com | https://varunpratap.com
+# License: Apache-2.0
+
 """SQLite-based persistence layer for AgentAssay.
 
 Provides durable storage for test runs, trials, verdicts, coverage metrics,

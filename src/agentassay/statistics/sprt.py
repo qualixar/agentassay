@@ -1,3 +1,8 @@
+# AgentAssay — Token-efficient stochastic testing for AI agents
+# Part of Qualixar | Author: Varun Pratap Bhardwaj
+# https://qualixar.com | https://varunpratap.com
+# License: Apache-2.0
+
 """Sequential Probability Ratio Test (SPRT) for cost-efficient agent testing.
 
 Wald's SPRT (1947) is an adaptive stopping procedure: instead of fixing the

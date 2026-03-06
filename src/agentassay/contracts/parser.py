@@ -1,3 +1,8 @@
+# AgentAssay — Token-efficient stochastic testing for AI agents
+# Part of Qualixar | Author: Varun Pratap Bhardwaj
+# https://qualixar.com | https://varunpratap.com
+# License: Apache-2.0
+
 """Safe condition parser for AgentAssay contract evaluation.
 
 Evaluates condition strings from ContractSpec YAML files using ONLY

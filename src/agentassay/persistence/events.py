@@ -1,3 +1,8 @@
+# AgentAssay — Token-efficient stochastic testing for AI agents
+# Part of Qualixar | Author: Varun Pratap Bhardwaj
+# https://qualixar.com | https://varunpratap.com
+# License: Apache-2.0
+
 """Synchronous in-process event bus for AgentAssay.
 
 Provides a lightweight publish/subscribe mechanism so that dashboard

@@ -1,3 +1,8 @@
+# AgentAssay — Token-efficient stochastic testing for AI agents
+# Part of Qualixar | Author: Varun Pratap Bhardwaj
+# https://qualixar.com | https://varunpratap.com
+# License: Apache-2.0
+
 """Multi-Fidelity Proxy Testing — test expensive agents using cheap models.
 
 THE PROBLEM (paper Section 7.4):

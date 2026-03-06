@@ -1,3 +1,8 @@
+# AgentAssay — Token-efficient stochastic testing for AI agents
+# Part of Qualixar | Author: Varun Pratap Bhardwaj
+# https://qualixar.com | https://varunpratap.com
+# License: Apache-2.0
+
 """Shared formatting utilities and chart factories for the AgentAssay dashboard.
 
 Every helper in this module is framework-agnostic at import time.  Streamlit

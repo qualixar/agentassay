@@ -1,3 +1,8 @@
+# AgentAssay — Token-efficient stochastic testing for AI agents
+# Part of Qualixar | Author: Varun Pratap Bhardwaj
+# https://qualixar.com | https://varunpratap.com
+# License: Apache-2.0
+
 """JSON exporter for AgentAssay reports.
 
 Serialises trial results, stochastic verdicts, and full reports to
@@ -17,6 +22,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+import agentassay
+from agentassay.attribution import QualixarSigner
 from agentassay.core.models import TrialResult
 from agentassay.coverage.aggregate import CoverageTuple
 from agentassay.mutation.runner import MutationSuiteResult
@@ -169,6 +176,14 @@ class JSONExporter:
             JSON object of the full report.
         """
         output: dict[str, Any] = {
+            "_attribution": {
+                "generator": f"AgentAssay v{agentassay.__version__}",
+                "author": "Varun Pratap Bhardwaj",
+                "author_url": "https://varunpratap.com",
+                "product": "Part of Qualixar",
+                "product_url": "https://qualixar.com",
+                "license": "Apache-2.0",
+            },
             "generated_at": datetime.now(timezone.utc).isoformat(),
             "format_version": "1.0.0",
         }
@@ -233,6 +248,14 @@ class JSONExporter:
                 mode="json"
             )
 
+        # Layer 2: Sign the content
+        json_str = json.dumps(output, sort_keys=True, indent=indent, default=str)
+        signer = QualixarSigner()
+        signature_metadata = signer.sign(json_str)
+
+        # Add signature to output
+        output["_signature"] = signature_metadata
+
         return json.dumps(output, sort_keys=True, indent=indent, default=str)
 
     @staticmethod
@@ -257,6 +280,25 @@ class JSONExporter:
             JSON indentation. Default 2 for readability.
         """
         json_str = JSONExporter.export_full_report(data, indent=indent)
-        out_path = Path(path)
+        out_path = Path(path).resolve()
+
+        # Security: Validate path is under CWD, user home, or temp directory
+        cwd = Path.cwd().resolve()
+        home = Path.home().resolve()
+        import tempfile
+        tmp = Path(tempfile.gettempdir()).resolve()
+
+        allowed = False
+        for allowed_base in [cwd, home, tmp]:
+            try:
+                out_path.relative_to(allowed_base)
+                allowed = True
+                break
+            except ValueError:
+                continue
+
+        if not allowed:
+            raise ValueError(f"Path must be under {cwd}, {home}, or {tmp}")
+
         out_path.parent.mkdir(parents=True, exist_ok=True)
         out_path.write_text(json_str, encoding="utf-8")

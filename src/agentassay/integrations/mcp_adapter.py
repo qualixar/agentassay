@@ -1,3 +1,8 @@
+# AgentAssay — Token-efficient stochastic testing for AI agents
+# Part of Qualixar | Author: Varun Pratap Bhardwaj
+# https://qualixar.com | https://varunpratap.com
+# License: Apache-2.0
+
 """MCP (Model Context Protocol) Tools adapter for AgentAssay.
 
 Wraps an MCP client or an Anthropic client with MCP tools and captures

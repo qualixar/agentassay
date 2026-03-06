@@ -1,3 +1,8 @@
+# AgentAssay — Token-efficient stochastic testing for AI agents
+# Part of Qualixar | Author: Varun Pratap Bhardwaj
+# https://qualixar.com | https://varunpratap.com
+# License: Apache-2.0
+
 """CLI command: ``agentassay report`` -- HTML report generation.
 
 Generates a self-contained HTML report from trial results JSON with
@@ -54,7 +59,12 @@ def report_command(results: str, output: str) -> None:
     ))
 
     # Load results
-    results_data = load_json(results, "results")
+    try:
+        results_data = load_json(results, "results")
+    except FileNotFoundError:
+        raise click.ClickException(f"Results file not found: {Path(results).name}")
+    except Exception:
+        raise click.ClickException("Failed to load results. Check file syntax and permissions.")
 
     # Extract pass/fail
     try:
@@ -85,8 +95,8 @@ def report_command(results: str, output: str) -> None:
         out_path.parent.mkdir(parents=True, exist_ok=True)
         out_path.write_text(html, encoding="utf-8")
         console.print(f"[green]Report written to {output}[/green]")
-    except OSError as exc:
-        raise click.ClickException(f"Cannot write report to {output}: {exc}") from exc
+    except OSError:
+        raise click.ClickException(f"Cannot write report to {Path(output).name}. Check permissions.")
 
     # Print summary
     summary = Table(title="Report Summary", show_header=True)

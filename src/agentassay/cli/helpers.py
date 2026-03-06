@@ -1,3 +1,8 @@
+# AgentAssay — Token-efficient stochastic testing for AI agents
+# Part of Qualixar | Author: Varun Pratap Bhardwaj
+# https://qualixar.com | https://varunpratap.com
+# License: Apache-2.0
+
 """Shared CLI helpers for AgentAssay commands.
 
 Provides JSON/YAML file I/O, result parsing, and Rich formatting
@@ -50,14 +55,10 @@ def load_json(path: str, label: str) -> dict[str, Any] | list[Any]:
     try:
         text = p.read_text(encoding="utf-8")
         return json.loads(text)
-    except json.JSONDecodeError as exc:
-        raise click.ClickException(
-            f"Invalid JSON in {label} file ({path}): {exc}"
-        ) from exc
-    except OSError as exc:
-        raise click.ClickException(
-            f"Cannot read {label} file ({path}): {exc}"
-        ) from exc
+    except json.JSONDecodeError:
+        raise click.ClickException(f"Invalid JSON syntax in {label} file")
+    except OSError:
+        raise click.ClickException(f"Cannot read {label} file. Check permissions.")
 
 
 def write_json(data: Any, path: str, label: str) -> None:
@@ -80,10 +81,8 @@ def write_json(data: Any, path: str, label: str) -> None:
             encoding="utf-8",
         )
         console.print(f"[green]Wrote {label} to {path}[/green]")
-    except OSError as exc:
-        raise click.ClickException(
-            f"Cannot write {label} to {path}: {exc}"
-        ) from exc
+    except OSError:
+        raise click.ClickException(f"Cannot write {label}. Check permissions.")
 
 
 def load_yaml(path: str, label: str) -> dict[str, Any]:
@@ -120,10 +119,10 @@ def load_yaml(path: str, label: str) -> dict[str, Any]:
                 f"{label} file must contain a YAML mapping, got {type(data).__name__}"
             )
         return data
-    except yaml.YAMLError as exc:
-        raise click.ClickException(
-            f"Invalid YAML in {label} file ({path}): {exc}"
-        ) from exc
+    except yaml.YAMLError:
+        raise click.ClickException(f"Invalid YAML syntax in {label} file")
+    except OSError:
+        raise click.ClickException(f"Cannot read {label} file. Check permissions.")
 
 
 # ---------------------------------------------------------------------------

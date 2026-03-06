@@ -1,3 +1,8 @@
+# AgentAssay — Token-efficient stochastic testing for AI agents
+# Part of Qualixar | Author: Varun Pratap Bhardwaj
+# https://qualixar.com | https://varunpratap.com
+# License: Apache-2.0
+
 """AWS Bedrock Agents adapter for AgentAssay.
 
 Wraps an AWS Bedrock Agent via the ``bedrock-agent-runtime`` service and

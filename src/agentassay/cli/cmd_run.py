@@ -1,3 +1,8 @@
+# AgentAssay — Token-efficient stochastic testing for AI agents
+# Part of Qualixar | Author: Varun Pratap Bhardwaj
+# https://qualixar.com | https://varunpratap.com
+# License: Apache-2.0
+
 """CLI command: ``agentassay run`` -- run agent assay trials.
 
 Loads agent configuration and test scenario from YAML files, validates
@@ -68,7 +73,13 @@ def run_command(
     # Load configuration
     assay_kwargs: dict[str, Any] = {}
     if config:
-        cfg_data = load_yaml(config, "config")
+        try:
+            cfg_data = load_yaml(config, "config")
+        except FileNotFoundError:
+            raise click.ClickException(f"Config file not found: {Path(config).name}")
+        except Exception:
+            raise click.ClickException("Failed to load config. Check file syntax and permissions.")
+
         # Map YAML keys to AssayConfig fields
         key_map = {
             "num_trials": "num_trials",
@@ -100,8 +111,8 @@ def run_command(
     try:
         from agentassay.core.models import AssayConfig as AC
         assay_cfg = AC(**assay_kwargs)
-    except Exception as exc:
-        raise click.ClickException(f"Invalid config: {exc}") from exc
+    except Exception:
+        raise click.ClickException("Invalid config parameters. Check configuration values.")
 
     # Display config
     config_table = Table(title="Assay Configuration", show_header=True)
@@ -122,11 +133,16 @@ def run_command(
 
     # Load scenario
     if scenario:
-        scenario_data = load_yaml(scenario, "scenario")
-        console.print(f"\n[cyan]Scenario:[/cyan] {scenario_data.get('name', 'unnamed')}")
-        console.print(
-            f"[dim]{scenario_data.get('description', 'No description')}[/dim]"
-        )
+        try:
+            scenario_data = load_yaml(scenario, "scenario")
+            console.print(f"\n[cyan]Scenario:[/cyan] {scenario_data.get('name', 'unnamed')}")
+            console.print(
+                f"[dim]{scenario_data.get('description', 'No description')}[/dim]"
+            )
+        except FileNotFoundError:
+            raise click.ClickException(f"Scenario file not found: {Path(scenario).name}")
+        except Exception:
+            raise click.ClickException("Failed to load scenario. Check file syntax and permissions.")
 
     console.print()
     console.print(

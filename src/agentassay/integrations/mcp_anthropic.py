@@ -1,3 +1,8 @@
+# AgentAssay — Token-efficient stochastic testing for AI agents
+# Part of Qualixar | Author: Varun Pratap Bhardwaj
+# https://qualixar.com | https://varunpratap.com
+# License: Apache-2.0
+
 """Anthropic client execution mode for the MCP Tools adapter.
 
 Handles the agentic loop that sends messages via the Anthropic messages
