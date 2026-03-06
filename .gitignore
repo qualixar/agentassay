@@ -101,3 +101,7 @@ experiments/infra/.last-pull-timestamp
 *.pem
 SECURITY-FIXES-2026-03-06.md
 TEST_COMPLETION_REPORT.md
+
+# Generated demo/test reports
+agentassay-demo-report.*
+agentassay-test-report.*

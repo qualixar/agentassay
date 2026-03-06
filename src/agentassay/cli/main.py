@@ -15,11 +15,13 @@ Entry point registered in pyproject.toml::
     agentassay = "agentassay.cli.main:cli"
 
 Commands:
-    agentassay run       Run agent assay trials against scenarios.
-    agentassay compare   Compare baseline vs. current results for regression.
-    agentassay mutate    Run mutation testing suite.
-    agentassay coverage  Compute and display coverage metrics.
-    agentassay report    Generate an HTML report from results.
+    agentassay run          Run agent assay trials against scenarios.
+    agentassay compare      Compare baseline vs. current results for regression.
+    agentassay mutate       Run mutation testing suite.
+    agentassay coverage     Compute and display coverage metrics.
+    agentassay report       Generate an HTML report from results.
+    agentassay demo         Run demo with 3 realistic scenarios (WOW in 60s).
+    agentassay test-report  Run test suite and generate HTML report.
 
 All commands use Rich for formatted terminal output and Click for
 argument parsing. Each command is implemented in its own module under
@@ -39,9 +41,11 @@ import agentassay
 from agentassay.cli.cmd_compare import compare_command
 from agentassay.cli.cmd_coverage import coverage_command
 from agentassay.cli.cmd_dashboard import dashboard_command
+from agentassay.cli.cmd_demo import demo_command
 from agentassay.cli.cmd_mutate import mutate_command
 from agentassay.cli.cmd_report import report_command
 from agentassay.cli.cmd_run import run_command
+from agentassay.cli.cmd_test_report import test_report_command
 
 # Re-export helpers for backward compatibility
 from agentassay.cli.helpers import (  # noqa: F401
@@ -87,6 +91,8 @@ cli.add_command(mutate_command, "mutate")
 cli.add_command(coverage_command, "coverage")
 cli.add_command(report_command, "report")
 cli.add_command(dashboard_command, "dashboard")
+cli.add_command(demo_command, "demo")
+cli.add_command(test_report_command, "test-report")
 
 
 # ===================================================================
