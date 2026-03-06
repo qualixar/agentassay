@@ -55,6 +55,7 @@ except ImportError:
     class StrEnum(str, Enum):  # type: ignore[no-redef]  # Python 3.10 compat
         pass
 
+
 from pydantic import BaseModel, model_validator
 from scipy import stats as sp_stats
 

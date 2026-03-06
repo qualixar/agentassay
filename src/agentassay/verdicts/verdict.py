@@ -68,6 +68,7 @@ except ImportError:
     class StrEnum(str, Enum):  # type: ignore[no-redef]  # Python 3.10 compat
         pass
 
+
 import numpy as np
 from pydantic import BaseModel, Field, field_validator, model_validator
 

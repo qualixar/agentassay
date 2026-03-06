@@ -58,6 +58,7 @@ except ImportError:
     class StrEnum(str, Enum):  # type: ignore[no-redef]  # Python 3.10 compat
         pass
 
+
 from agentassay.verdicts.verdict import StochasticVerdict, VerdictStatus
 
 
