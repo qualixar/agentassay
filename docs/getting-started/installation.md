@@ -35,6 +35,18 @@ pip install agentassay[openai]
 # For smolagents
 pip install agentassay[smolagents]
 
+# For Semantic Kernel (Microsoft)
+pip install agentassay[semantic-kernel]
+
+# For AWS Bedrock Agents
+pip install agentassay[bedrock]
+
+# For MCP (Model Context Protocol)
+pip install agentassay[mcp]
+
+# For Vertex AI Agents (Google)
+pip install agentassay[vertex]
+
 # Install all framework adapters
 pip install agentassay[all]
 ```

@@ -60,6 +60,19 @@ AgentAssay solves both problems:
 - [Framework Adapters](guides/framework-adapters.md) -- Connect to your agent framework
 - [Dashboard](guides/dashboard.md) -- Visualize results, trends, and behavioral fingerprints
 
+### Framework Quickstarts
+
+- [LangGraph](guides/adapters/langgraph.md)
+- [CrewAI](guides/adapters/crewai.md)
+- [AutoGen](guides/adapters/autogen.md)
+- [OpenAI Agents](guides/adapters/openai.md)
+- [smolagents](guides/adapters/smolagents.md)
+- [Semantic Kernel](guides/adapters/semantic-kernel.md)
+- [AWS Bedrock Agents](guides/adapters/bedrock.md)
+- [MCP](guides/adapters/mcp.md)
+- [Vertex AI Agents](guides/adapters/vertex.md)
+- [Custom Agents](guides/adapters/custom.md)
+
 ### Reference
 
 - [CLI Reference](reference/cli.md) -- All six commands documented

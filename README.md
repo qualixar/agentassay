@@ -2,6 +2,7 @@
   <h1 align="center">AgentAssay</h1>
   <p align="center"><strong>Test More. Spend Less. Ship Confident.</strong></p>
   <p align="center">The first agent testing framework that delivers statistical guarantees WITHOUT burning your token budget.</p>
+  <p align="center"><em>A <a href="https://qualixar.com">Qualixar</a> Research Initiative by <a href="https://varunpratap.com">Varun Pratap Bhardwaj</a></em></p>
 </p>
 
 <p align="center">
@@ -51,22 +52,76 @@ Coverage metrics, contract checks, metamorphic relations, and mutation analysis 
 ## Install
 
 ```bash
-pip install agentassay
-```
-
-```bash
-# With framework adapters
-pip install agentassay[all]
-```
-
-```bash
-# Development
-pip install agentassay[dev]
+pip install agentassay                    # Core (works with CustomAdapter)
+pip install agentassay[langgraph]         # + LangGraph support
+pip install agentassay[crewai]            # + CrewAI support
+pip install agentassay[all]               # All framework adapters
 ```
 
 ---
 
-## Quick Example: Token-Efficient Testing
+## Supported Frameworks
+
+AgentAssay works with every major agent framework — zero lock-in, plug-and-play.
+
+| Framework | Install | Adapter |
+|-----------|---------|---------|
+| [LangGraph](https://github.com/langchain-ai/langgraph) | `pip install agentassay[langgraph]` | `LangGraphAdapter` |
+| [CrewAI](https://github.com/crewAIInc/crewAI) | `pip install agentassay[crewai]` | `CrewAIAdapter` |
+| [AutoGen](https://github.com/microsoft/autogen) | `pip install agentassay[autogen]` | `AutoGenAdapter` |
+| [OpenAI Agents](https://platform.openai.com/docs/guides/agents) | `pip install agentassay[openai]` | `OpenAIAgentsAdapter` |
+| [smolagents](https://github.com/huggingface/smolagents) | `pip install agentassay[smolagents]` | `SmolAgentsAdapter` |
+| [Semantic Kernel](https://github.com/microsoft/semantic-kernel) | `pip install agentassay[semantic-kernel]` | `SemanticKernelAdapter` |
+| [AWS Bedrock Agents](https://aws.amazon.com/bedrock/agents/) | `pip install agentassay[bedrock]` | `BedrockAgentsAdapter` |
+| [MCP](https://modelcontextprotocol.io/) | `pip install agentassay[mcp]` | `MCPToolsAdapter` |
+| [Vertex AI Agents](https://cloud.google.com/vertex-ai) | `pip install agentassay[vertex]` | `VertexAIAgentsAdapter` |
+| Any custom agent | `pip install agentassay` | `CustomAdapter` |
+
+> **Don't see your framework?** Use `CustomAdapter` — wrap any callable that returns execution traces.
+
+---
+
+## Quick Start: Pick Your Framework
+
+**LangGraph:**
+```python
+from agentassay.integrations import LangGraphAdapter
+
+adapter = LangGraphAdapter(graph=your_graph)
+trace = adapter.run({"query": "Book a flight from NYC to London"})
+print(f"Steps: {len(trace.steps)}, Cost: ${trace.total_cost_usd:.4f}")
+```
+
+**CrewAI:**
+```python
+from agentassay.integrations import CrewAIAdapter
+
+adapter = CrewAIAdapter(crew=your_crew)
+trace = adapter.run({"task": "Research protein folding"})
+print(f"Success: {trace.success}, Duration: {trace.total_duration_ms}ms")
+```
+
+**Any Framework:**
+```python
+from agentassay.integrations import CustomAdapter
+
+def my_agent_fn(input_data):
+    # Your agent logic here
+    return execution_trace
+
+adapter = CustomAdapter(callable_fn=my_agent_fn)
+trace = adapter.run({"query": "Hello world"})
+```
+
+**Try the demo:**
+```bash
+# See it in action instantly (no config needed)
+agentassay demo
+```
+
+---
+
+## Full Example: Token-Efficient Testing
 
 ```python
 from agentassay.efficiency import BehavioralFingerprint, AdaptiveBudgetOptimizer
@@ -218,7 +273,12 @@ python -m pytest tests/ -v --agentassay
 
 ## CLI
 
+AgentAssay provides 8 commands for testing, analysis, and reporting:
+
 ```bash
+# Try the interactive demo (no setup needed)
+agentassay demo
+
 # Run trials with adaptive budget
 agentassay run --scenario booking.yaml --budget-mode adaptive
 
@@ -231,8 +291,14 @@ agentassay coverage --traces production-traces/ --tools search,book,cancel
 # Mutation testing
 agentassay mutate --scenario booking.yaml --operators prompt,tool,model
 
-# Generate report
+# Generate test reports
+agentassay test-report --results trials.json --format html
+
+# Generate full HTML report
 agentassay report --results trials.json --output report.html
+
+# Check version
+agentassay --version
 ```
 
 ---
@@ -276,4 +342,12 @@ Contributions welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ## License
 
-Apache-2.0. See [LICENSE](LICENSE).
+Apache-2.0 — forever free, never paid. See [LICENSE](LICENSE).
+
+---
+
+<p align="center">
+  <strong>Part of <a href="https://qualixar.com">Qualixar</a></strong> — The Complete Agent Development Platform<br>
+  A research initiative by <a href="https://varunpratap.com">Varun Pratap Bhardwaj</a><br><br>
+  <a href="https://qualixar.com">qualixar.com</a> · <a href="https://varunpratap.com">varunpratap.com</a> · <a href="https://arxiv.org/abs/2603.02601">arXiv:2603.02601</a>
+</p>

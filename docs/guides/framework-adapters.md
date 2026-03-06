@@ -2,31 +2,25 @@
 
 AgentAssay works with any AI agent framework through adapters. An adapter translates your framework's execution into the standardized `ExecutionTrace` format that AgentAssay understands.
 
+> **Looking for a specific framework?** Jump to:
+> [LangGraph](adapters/langgraph.md) | [CrewAI](adapters/crewai.md) | [AutoGen](adapters/autogen.md) | [OpenAI Agents](adapters/openai.md) | [smolagents](adapters/smolagents.md) | [Semantic Kernel](adapters/semantic-kernel.md) | [AWS Bedrock](adapters/bedrock.md) | [MCP](adapters/mcp.md) | [Vertex AI](adapters/vertex.md) | [Custom](adapters/custom.md)
+
 ## Supported Frameworks
 
-| Framework | Install Extra | Adapter |
-|-----------|--------------|---------|
-| LangGraph | `agentassay[langgraph]` | Automatic trace capture from LangGraph runs |
-| CrewAI | `agentassay[crewai]` | Wraps crew executions as execution traces |
-| AutoGen | `agentassay[autogen]` | Captures multi-agent conversations |
-| OpenAI Agents SDK | `agentassay[openai]` | Wraps OpenAI agent runs |
-| smolagents | `agentassay[smolagents]` | Captures lightweight agent executions |
-| Custom | (included) | Wrap any callable as an agent |
+| Framework | Install Extra | Adapter Class | Status |
+|-----------|--------------|---------------|--------|
+| LangGraph | `agentassay[langgraph]` | `LangGraphAdapter` | ✅ Production |
+| CrewAI | `agentassay[crewai]` | `CrewAIAdapter` | ✅ Production |
+| AutoGen | `agentassay[autogen]` | `AutoGenAdapter` | ✅ Production |
+| OpenAI Agents SDK | `agentassay[openai]` | `OpenAIAgentsAdapter` | ✅ Production |
+| smolagents | `agentassay[smolagents]` | `SmolAgentsAdapter` | ✅ Production |
+| Semantic Kernel (Microsoft) | `agentassay[semantic-kernel]` | `SemanticKernelAdapter` | ✅ Production |
+| AWS Bedrock Agents | `agentassay[bedrock]` | `BedrockAgentsAdapter` | ✅ Production |
+| Anthropic MCP | `agentassay[mcp]` | `MCPToolsAdapter` | ✅ Production |
+| Google Vertex AI Agents | `agentassay[vertex]` | `VertexAIAgentsAdapter` | ✅ Production |
+| Custom | (included) | `CustomAdapter` | ✅ Production |
 
-## Coming Soon
-
-The following adapters are under active development:
-
-| Framework | Install Extra | Status |
-|-----------|--------------|--------|
-| Semantic Kernel (Microsoft) | `agentassay[semantic-kernel]` | In development |
-| AWS Bedrock Agents | `agentassay[bedrock]` | In development |
-| Anthropic MCP Tools | `agentassay[mcp]` | In development |
-| Google Vertex AI Agents | `agentassay[vertex]` | In development |
-| Haystack (deepset) | `agentassay[haystack]` | Planned |
-| DSPy (Stanford) | `agentassay[dspy]` | Planned |
-
-In the meantime, any agent framework can be integrated using the [Custom adapter](#custom-agents).
+> All 10 adapters are production-ready. Any framework can be integrated using `CustomAdapter`.
 
 ## Using the Adapter Factory
 

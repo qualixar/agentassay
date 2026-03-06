@@ -105,3 +105,6 @@ TEST_COMPLETION_REPORT.md
 # Generated demo/test reports
 agentassay-demo-report.*
 agentassay-test-report.*
+
+# Wiki pages (pushed to separate wiki repo)
+wiki/
