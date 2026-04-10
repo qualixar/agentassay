@@ -7,7 +7,7 @@ name = "agentassay"
 version = "0.1.2"
 description = "Formal regression testing for non-deterministic AI agent workflows"
 readme = "README.md"
-license = {text = "Apache-2.0"}
+license = {text = "AGPL-3.0-or-later"}
 requires-python = ">=3.10"
 authors = [
     {name = "Varun Pratap Bhardwaj", email = "varun@qualixar.com"},
@@ -27,7 +27,7 @@ keywords = [
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: Apache Software License",
+    "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",

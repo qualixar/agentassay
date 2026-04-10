@@ -1,7 +1,7 @@
 # AgentAssay — Token-efficient stochastic testing for AI agents
 # Part of Qualixar | Author: Varun Pratap Bhardwaj
 # https://qualixar.com | https://varunpratap.com
-# License: Apache-2.0
+# License: AGPL-3.0-or-later
 
 """Layer 2: Cryptographic signing for AgentAssay outputs.
 
@@ -35,7 +35,7 @@ class QualixarSigner:
         - author_url: https://varunpratap.com
         - product: AgentAssay
         - product_url: https://qualixar.com
-        - license: Apache-2.0
+        - license: AGPL-3.0-or-later
         - timestamp: ISO 8601 UTC
         - content_hash: SHA-256 of content
         - signature: HMAC-SHA256(content_hash, private_key)
@@ -93,7 +93,7 @@ class QualixarSigner:
             "author_url": "https://varunpratap.com",
             "product": "AgentAssay",
             "product_url": "https://qualixar.com",
-            "license": "Apache-2.0",
+            "license": "AGPL-3.0-or-later",
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "content_hash": content_hash,
             "signature": signature,

@@ -1,7 +1,7 @@
 # AgentAssay — Token-efficient stochastic testing for AI agents
 # Part of Qualixar | Author: Varun Pratap Bhardwaj
 # https://qualixar.com | https://varunpratap.com
-# License: Apache-2.0
+# License: AGPL-3.0-or-later
 
 """Test report command — run pytest and generate HTML report.
 
@@ -286,7 +286,7 @@ def _generate_test_report_html(
       <a href="https://qualixar.com" target="_blank">qualixar.com</a> |
       <a href="https://varunpratap.com" target="_blank">varunpratap.com</a>
     </p>
-    <p>License: Apache-2.0</p>
+    <p>License: AGPL-3.0-or-later</p>
   </div>
 </div>
 

@@ -12,7 +12,7 @@
   <a href="https://codecov.io/gh/qualixar/agentassay"><img src="https://img.shields.io/codecov/c/github/qualixar/agentassay?style=flat-square" alt="Coverage"></a>
   <a href="https://pypi.org/project/agentassay/"><img src="https://img.shields.io/pypi/v/agentassay?style=flat-square" alt="PyPI"></a>
   <a href="https://pypi.org/project/agentassay/"><img src="https://img.shields.io/pypi/pyversions/agentassay?style=flat-square" alt="Python"></a>
-  <a href="https://github.com/qualixar/agentassay/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-blue?style=flat-square" alt="License"></a>
+  <a href="https://www.gnu.org/licenses/agpl-3.0"><img src="https://img.shields.io/badge/License-AGPL_v3-blue.svg?style=flat-square" alt="AGPL v3"></a>
 </p>
 
 ---
@@ -342,7 +342,11 @@ Contributions welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ## License
 
-Apache-2.0 — forever free, never paid. See [LICENSE](LICENSE).
+GNU Affero General Public License v3.0 (AGPL-3.0). See [LICENSE](LICENSE).
+
+For commercial licensing (closed-source, proprietary, or hosted use), see [COMMERCIAL-LICENSE.md](COMMERCIAL-LICENSE.md) or contact varun.pratap.bhardwaj@gmail.com.
+
+Copyright (c) 2026 Varun Pratap Bhardwaj / Qualixar.
 
 ---
 

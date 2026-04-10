@@ -1,7 +1,7 @@
 # AgentAssay — Token-efficient stochastic testing for AI agents
 # Part of Qualixar | Author: Varun Pratap Bhardwaj
 # https://qualixar.com | https://varunpratap.com
-# License: Apache-2.0
+# License: AGPL-3.0-or-later
 
 """Tests for the Qualixar 3-Layer Attribution System."""
 
@@ -31,7 +31,7 @@ class TestQualixarSigner:
         assert metadata["author_url"] == "https://varunpratap.com"
         assert metadata["product"] == "AgentAssay"
         assert metadata["product_url"] == "https://qualixar.com"
-        assert metadata["license"] == "Apache-2.0"
+        assert metadata["license"] == "AGPL-3.0-or-later"
         assert "timestamp" in metadata
         assert "content_hash" in metadata
         assert "signature" in metadata
@@ -272,7 +272,7 @@ class TestVisibleAttribution:
         assert attr["author_url"] == "https://varunpratap.com"
         assert attr["product"] == "Part of Qualixar"
         assert attr["product_url"] == "https://qualixar.com"
-        assert attr["license"] == "Apache-2.0"
+        assert attr["license"] == "AGPL-3.0-or-later"
         assert "AgentAssay" in attr["generator"]
 
     def test_html_report_has_footer(self) -> None:
@@ -286,7 +286,7 @@ class TestVisibleAttribution:
         assert "Part of Qualixar" in html
         assert "Varun Pratap Bhardwaj" in html
         assert "qualixar.com" in html
-        assert "Apache-2.0" in html
+        assert "AGPL-3.0-or-later" in html
 
 
 # ===================================================================
@@ -352,4 +352,4 @@ class TestAttributionIntegration:
         assert "Part of Qualixar" in version_text
         assert "Varun Pratap Bhardwaj" in version_text
         assert "qualixar.com" in version_text
-        assert "Apache-2.0" in version_text
+        assert "AGPL-3.0-or-later" in version_text

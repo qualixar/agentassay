@@ -1,7 +1,7 @@
 # AgentAssay — Token-efficient stochastic testing for AI agents
 # Part of Qualixar | Author: Varun Pratap Bhardwaj
 # https://qualixar.com | https://varunpratap.com
-# License: Apache-2.0
+# License: AGPL-3.0-or-later
 
 """AgentAssay CLI -- command-line interface for agent regression testing.
 
@@ -63,7 +63,7 @@ def _version_message() -> str:
     return (
         f"agentassay, version {agentassay.__version__}\n"
         f"Part of Qualixar | Author: Varun Pratap Bhardwaj\n"
-        f"https://qualixar.com | Apache-2.0"
+        f"https://qualixar.com | AGPL-3.0"
     )
 
 

@@ -113,7 +113,7 @@ Read [Token-Efficient Testing](concepts/token-efficient-testing.md) for the full
 
 - **Source code:** [github.com/qualixar/agentassay](https://github.com/qualixar/agentassay)
 - **PyPI:** `pip install agentassay`
-- **License:** Apache-2.0
+- **License:** AGPL-3.0-or-later
 
 ---
 
