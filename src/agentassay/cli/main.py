@@ -63,7 +63,7 @@ def _version_message() -> str:
     return (
         f"agentassay, version {agentassay.__version__}\n"
         f"Part of Qualixar | Author: Varun Pratap Bhardwaj\n"
-        f"https://qualixar.com | AGPL-3.0"
+        f"https://qualixar.com | AGPL-3.0-or-later"
     )
 
 
