@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "agentassay"
-version = "0.2.1"
+version = "0.2.2"
 description = "Formal regression testing for non-deterministic AI agent workflows"
 readme = "README.md"
 license = {text = "AGPL-3.0-or-later"}
